@@ -1,5 +1,4 @@
 using SwoopMarketplaceProjectFrontend.Services;
-using ThormaFrontend.Services;
 
 namespace SwoopMarketplaceProjectFrontend
 {

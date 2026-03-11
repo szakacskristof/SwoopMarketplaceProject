@@ -1,7 +1,7 @@
 ﻿using SwoopMarketplaceProjectFrontend.Services;
 using System.Net.Http.Headers;
 
-namespace ThormaFrontend.Services
+namespace SwoopMarketplaceProjectFrontend.Services
 {
     public class JwtBearerHandler : DelegatingHandler
     {

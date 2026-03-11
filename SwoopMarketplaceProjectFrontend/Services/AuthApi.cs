@@ -1,4 +1,4 @@
-﻿namespace ThormaFrontend.Services
+﻿namespace SwoopMarketplaceProjectFrontend.Services
 {
     public class AuthApi
     {

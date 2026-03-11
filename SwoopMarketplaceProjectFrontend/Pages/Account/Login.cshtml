@@ -1,0 +1,35 @@
+﻿@page
+@model SwoopMarketplaceProjectFrontend.Pages.Account.LoginModel
+
+<h2>Bejelentkezés</h2>
+
+@if (!string.IsNullOrWhiteSpace(Model.Error))
+{
+    <div class="alert alert-danger">
+        @Model.Error
+    </div>
+}
+<form method="post" class="mt-4">
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label">Email cím</label>
+        <input asp-for="Email" class="form-control" type="email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">Jelszó</label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+    <button type="submit" class="btn btn-success">
+        Bejelentkezés
+    </button>
+    <a asp-page="/Account/Register" class="btn btn-link">
+        Nincs még fiókod? Regisztráció
+    </a>
+</form>
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}
