@@ -27,7 +27,7 @@ namespace SwoopMarketplaceProjectBackendAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Thorma API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Swoop API", Version = "v1" });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
