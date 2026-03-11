@@ -1,4 +1,5 @@
 using SwoopMarketplaceProjectFrontend.Services;
+using ThormaFrontend.Services;
 
 namespace SwoopMarketplaceProjectFrontend
 {
@@ -36,6 +37,19 @@ namespace SwoopMarketplaceProjectFrontend
             });
 
             builder.Services.AddHttpContextAccessor();
+
+            builder.Services.AddScoped<AuthSession>();
+            builder.Services.AddScoped<AuthApi>();
+            builder.Services.AddTransient<JwtBearerHandler>();
+
+            builder.Services.AddHttpClient("SwoopApi", c =>
+            {
+                c.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"]!);
+            })
+            .ConfigurePrimaryHttpMessageHandler(() =>
+            new HttpClientHandler { UseProxy = false }
+            )
+            .AddHttpMessageHandler<JwtBearerHandler>();
 
 
             var app = builder.Build();
