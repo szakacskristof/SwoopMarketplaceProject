@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="SwoopMarketplaceProject/SwoopMarketplaceProject.csproj" />
   <Project Path="SwoopMarketplaceProjectBackendAPI/SwoopMarketplaceProjectBackendAPI.csproj" />
+  <Project Path="SwoopMarketplaceProjectFrontend/SwoopMarketplaceProjectFrontend.csproj" Id="10789ea6-4099-4b28-84a1-61fdc956e2f4" />
 </Solution>
