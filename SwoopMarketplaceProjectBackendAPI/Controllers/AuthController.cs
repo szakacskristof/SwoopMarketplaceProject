@@ -37,6 +37,7 @@ public class AuthController : ControllerBase
     {
         var user = new IdentityUser { UserName = req.Email, Email = req.Email };
         var result = await _users.CreateAsync(user, req.Password);
+        await _users.AddToRoleAsync(user, "User");
         if (!result.Succeeded)
             return BadRequest(result.Errors.Select(e => e.Description));
         return Ok();
