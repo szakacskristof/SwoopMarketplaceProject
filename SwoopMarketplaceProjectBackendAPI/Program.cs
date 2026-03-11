@@ -1,19 +1,22 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SwoopMarketplaceProject.Models;
 using SwoopMarketplaceProjectBackendAPI.Data;
 using System;
+using System.Threading.Tasks;
 using System.Text;
 
 namespace SwoopMarketplaceProjectBackendAPI
 {
     public class Program
     {
-        public static async void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
