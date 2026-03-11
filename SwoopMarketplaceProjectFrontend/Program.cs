@@ -1,3 +1,5 @@
+using SwoopMarketplaceProjectFrontend.Services;
+
 namespace SwoopMarketplaceProjectFrontend
 {
     public class Program
@@ -15,6 +17,15 @@ namespace SwoopMarketplaceProjectFrontend
             .ConfigurePrimaryHttpMessageHandler(() =>
             new HttpClientHandler { UseProxy = false }
             );
+
+
+
+            builder.Services.AddScoped<ListingApi>();
+            builder.Services.AddScoped<CategoryApi>();
+            builder.Services.AddScoped<ListingViewApi>();
+            builder.Services.AddScoped<ListingImageApi>();
+            builder.Services.AddScoped<UserApi>();
+            builder.Services.AddScoped<ReportApi>();
 
 
             var app = builder.Build();
