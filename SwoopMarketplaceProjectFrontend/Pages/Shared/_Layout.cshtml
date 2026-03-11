@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using SwoopMarketplaceProjectFrontend.Services
+@inject AuthSession AuthSession
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -43,6 +45,29 @@
                         </li>
 
                         
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto">
+                        @if (!AuthSession.IsSignedIn)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-page="/Account/Login">Bejelentkezés</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-page="/Account/Register">Regisztráció</a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-success">@AuthSession.GetEmail()</span>
+                            </li>
+                            <li class="nav-item">
+                                <form method="post" asp-page="/Account/Logout" class="d-inline">
+                                    <button type="submit" class="btn btn-link nav-link text-danger">Kijelentkezés</button>
+                                </form>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
