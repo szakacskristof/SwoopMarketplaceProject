@@ -1,7 +1,12 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SwoopMarketplaceProject.Models;
+using SwoopMarketplaceProjectBackendAPI.Data;
 using System;
+using System.Text;
 
 namespace SwoopMarketplaceProjectBackendAPI
 {
@@ -21,6 +26,44 @@ namespace SwoopMarketplaceProjectBackendAPI
             builder.Services.AddDbContext<SwoopContext>(options =>
             options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
+            // Identity DB (MYSQL)
+
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseMySql(builder.Configuration.GetConnectionString("IdentityConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("IdentityConnection"))));
+
+            // Identity
+
+            builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            builder.Services.AddAuthentication(options =>
+            {
+                // KRITIKUS: ha Identity cookie is jelen van, enélkül keveredhet a scheme
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                };
+            });
+
+
+            builder.Services.AddAuthorization();
+
 
             var app = builder.Build();
 
@@ -33,6 +76,7 @@ namespace SwoopMarketplaceProjectBackendAPI
 
             app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
