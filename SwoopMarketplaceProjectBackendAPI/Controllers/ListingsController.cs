@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace SwoopMarketplaceProjectBackendAPI.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize]
+    [Authorize(Roles = "User,Admin")]
     [ApiController]
     public class ListingsController : ControllerBase
     {

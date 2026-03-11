@@ -50,14 +50,16 @@ public class AuthController : ControllerBase
         if (user is null) return Unauthorized();
         var ok = await _users.CheckPasswordAsync(user, req.Password);
         if (!ok) return Unauthorized();
-        var token = CreateJwt(user);
+
+        var roles = await _users.GetRolesAsync(user);
+        var token = CreateJwt(user, roles);
 
         return Ok(new { token });
 
     }
 
 
-    private string CreateJwt(IdentityUser user)
+    private string CreateJwt(IdentityUser user, IEnumerable<string> roles)
     {
         var claims = new List<Claim>
         {
@@ -65,6 +67,10 @@ public class AuthController : ControllerBase
         new Claim(JwtRegisteredClaimNames.Email, user.Email ?? ""),
         new Claim(JwtRegisteredClaimNames.UniqueName, user.UserName ?? "")
         };
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_cfg["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
         var jwt = new JwtSecurityToken(
