@@ -1,3 +1,4 @@
+using SwoopMarketplaceProjectFrontend.Infrastructure;
 using SwoopMarketplaceProjectFrontend.Services;
 
 namespace SwoopMarketplaceProjectFrontend
@@ -49,6 +50,16 @@ namespace SwoopMarketplaceProjectFrontend
             new HttpClientHandler { UseProxy = false }
             )
             .AddHttpMessageHandler<JwtBearerHandler>();
+
+            builder.Services.AddScoped<AuthPageFilter>();
+            // Add services to the container.
+            builder.Services.AddRazorPages()
+            .AddMvcOptions(options =>
+            {
+                options.Filters.AddService<AuthPageFilter>();
+
+            });
+
 
 
             var app = builder.Build();
