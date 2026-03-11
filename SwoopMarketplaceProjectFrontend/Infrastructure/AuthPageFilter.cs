@@ -15,9 +15,7 @@ namespace SwoopMarketplaceProjectFrontend.Infrastructure
         {
             var path = context.HttpContext.Request.Path.Value ?? "/";
             // Bizonyos oldalakat megvédünk
-            if (
-            path.StartsWith("/Listings", StringComparison.OrdinalIgnoreCase) ||
-            path.StartsWith("/Users", StringComparison.OrdinalIgnoreCase))
+            if (MatchesAnyPrefix(path, SignedInPrefixes))
             {
                 if (!_auth.IsSignedIn)
                 {
@@ -25,8 +23,38 @@ namespace SwoopMarketplaceProjectFrontend.Infrastructure
                     new { returnUrl = path + context.HttpContext.Request.QueryString });
                     return Task.CompletedTask;
                 }
+                if (MatchesAnyPrefix(path, AdminOnlyPrefixes) && !_auth.IsInRole("Admin"))
+                {
+                    context.Result = new RedirectToPageResult("/Errors/Forbidden");
+                    return Task.CompletedTask;
+                }
             }
             return next();
         }
+
+
+        private static bool MatchesAnyPrefix(string path, string[] prefixes)
+
+        => prefixes.Any(p => path.StartsWith(p, StringComparison.OrdinalIgnoreCase));
+
+        // Ide soroljuk a védett útvonalakat prefix szerint
+        private static readonly string[] SignedInPrefixes =
+        [
+            "/Listings",
+            "/Categories"
+        ];
+
+        // Admin oldalak: lehet prefix vagy konkrét útvonal
+        private static readonly string[] AdminOnlyPrefixes =
+        [  
+            "/Users/Delete",
+            "/Users/Details"
+
+        ];
+
+
+
+
+
     }
 }

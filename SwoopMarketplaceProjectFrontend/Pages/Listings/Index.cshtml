@@ -1,10 +1,10 @@
 ﻿@page
-
 @model SwoopMarketplaceProjectFrontend.Pages.Listings.IndexModel
-
-
+@using SwoopMarketplaceProjectFrontend.Services
+@inject AuthSession AuthSession
 
 <h1>Listings</h1>
+
 
 
 <table >
@@ -18,7 +18,16 @@
             <td>@n.CategoryId</td>
             <td>@n.Location</td>
             <td>@n.Description</td>
+            @if (AuthSession.IsInRole("Admin"))
+            {   
+                <td><a asp-page="./Delete">Törlés(Ne nyomd meg,teszt!)</a></td>      
+            }
+            @if (AuthSession.IsInRole("User") || AuthSession.IsInRole("Admin"))
+            {
 
+                <td><a asp-page="./Details" asp-route-azon="@n.Id">Megtekintés</a></td>
+
+            }
         }
 
     </tr>

@@ -1,0 +1,22 @@
+﻿@page "{azon}"
+@model SwoopMarketplaceProjectFrontend.Pages.Listings.DetailsModel
+
+
+<h2>Hírdetés adatai</h2>
+@if (Model.Listing is null)
+{
+    <div class="alert alert-warning">A hírdetés nem található.</div>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Azon</dt>
+        <dd class="col-sm-9">@Model.Listing.Id</dd>
+        <dt class="col-sm-3">Név</dt>
+        <dd class="col-sm-9">@Model.Listing.Title</dd>
+        <dt class="col-sm-3">Leírás</dt>
+        <dd class="col-sm-9">@Model.Listing.Description</dd>
+ 
+    </dl>
+    <a class="btn btn-secondary" asp-page="./Index">Vissza</a>
+}

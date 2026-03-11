@@ -1,4 +1,5 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace SwoopMarketplaceProjectFrontend.Services
 {
@@ -20,13 +21,33 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
         public bool IsSignedIn
         => !string.IsNullOrWhiteSpace(GetToken());
-        public string? GetEmail()
+        // --- JWT claims kiolvasásának segédfüggvényei ---
+
+        private JwtSecurityToken? ReadJwt()
         {
             var token = GetToken();
             if (string.IsNullOrWhiteSpace(token)) return null;
             var handler = new JwtSecurityTokenHandler();
-            var jwt = handler.ReadJwtToken(token);
-            return jwt.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+            return handler.ReadJwtToken(token);
         }
+        public string? GetEmail()
+        {
+            var jwt = ReadJwt();
+            return jwt?.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+        }
+        public IReadOnlyList<string> GetRoles()
+        {
+            var jwt = ReadJwt();
+            if (jwt is null) return Array.Empty<string>();
+            // A role claim tipikusan: "role" (ClaimTypes.Role is erre mapelődik JWT-ben)
+            return jwt.Claims
+            .Where(c => c.Type == ClaimTypes.Role || c.Type == "role")
+            .Select(c => c.Value)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        }
+
+        public bool IsInRole(string role)
+        => GetRoles().Any(r => r.Equals(role, StringComparison.OrdinalIgnoreCase));
     }
 }

@@ -62,7 +62,17 @@
                         else
                         {
                             <li class="nav-item">
-                                <span class="nav-link text-success">@AuthSession.GetEmail()</span>
+                                <span class="nav-link text-success">
+                                    @AuthSession.GetEmail()
+                                    @if (AuthSession.IsInRole("Admin"))
+                                    {
+                                        <span class="badge bg-danger ms-2">Admin</span>
+                                    }
+                                    else if (AuthSession.IsInRole("User"))
+                                    {
+                                        <span class="badge bg-warning ms-2">Felhasználó</span>
+                                    }
+                                </span>
                             </li>
                             <li class="nav-item">
                                 <form method="post" asp-page="/Account/Logout" class="d-inline">
