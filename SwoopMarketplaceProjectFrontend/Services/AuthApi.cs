@@ -6,13 +6,13 @@
         public AuthApi(IHttpClientFactory f) => _f = f;
         public async Task RegisterAsync(string email, string password, CancellationToken ct = default)
         {
-            var client = _f.CreateClient("ThormaApi");
+            var client = _f.CreateClient("SwoopApi");
             var resp = await client.PostAsJsonAsync("api/auth/register", new { email, password }, ct);
             resp.EnsureSuccessStatusCode();
         }
         public async Task<string> LoginAsync(string email, string password, CancellationToken ct = default)
         {
-            var client = _f.CreateClient("ThormaApi");
+            var client = _f.CreateClient("SwoopApi");
             var resp = await client.PostAsJsonAsync("api/auth/login", new { email, password }, ct);
             resp.EnsureSuccessStatusCode();
             var data = await resp.Content.ReadFromJsonAsync<LoginResponse>(cancellationToken: ct);
