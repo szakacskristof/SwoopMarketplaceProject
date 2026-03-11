@@ -27,6 +27,16 @@ namespace SwoopMarketplaceProjectFrontend
             builder.Services.AddScoped<UserApi>();
             builder.Services.AddScoped<ReportApi>();
 
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromHours(2);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
+            builder.Services.AddHttpContextAccessor();
+
 
             var app = builder.Build();
 
