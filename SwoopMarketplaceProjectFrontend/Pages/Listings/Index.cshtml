@@ -1,0 +1,28 @@
+﻿@page
+
+@model SwoopMarketplaceProjectFrontend.Pages.Listings.IndexModel
+
+
+
+<h1>Listings</h1>
+
+
+<table >
+    <tr>
+        @foreach (var n in Model.Listings)
+
+        {
+
+            <td>@n.Title</td>
+            <td>@n.Price</td>
+            <td>@n.CategoryId</td>
+            <td>@n.Location</td>
+            <td>@n.Description</td>
+
+        }
+
+    </tr>
+
+   
+
+</table>

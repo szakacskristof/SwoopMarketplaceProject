@@ -10,4 +10,10 @@
     <ProjectReference Include="..\SwoopMarketplaceProject\SwoopMarketplaceProject.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Pages\ListingImages\" />
+    <Folder Include="Pages\Reports\" />
+    <Folder Include="Pages\Users\" />
+  </ItemGroup>
+
 </Project>
