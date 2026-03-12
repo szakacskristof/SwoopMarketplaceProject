@@ -42,6 +42,19 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
             return listing;
         }
+        // GET: api/Listings/category
+        [HttpGet("{category}")]
+        public async Task<ActionResult<IEnumerable<Listing>>> GetListingByCategory(string category)
+        {
+            var listings = await (from x in _context.Listings where x.Category.Name==category select x).ToListAsync();
+
+            if (listings == null)
+            {
+                return NotFound();
+            }
+
+            return listings;
+        }
 
         // PUT: api/Listings/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
