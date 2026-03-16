@@ -36,6 +36,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     l.Id,
                     l.UserId,
                     l.CategoryId,
+                    CategoryName = l.Category != null ? l.Category.Name : null,
                     l.Title,
                     l.Description,
                     l.Price,
@@ -51,7 +52,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Listings/5
-        [Authorize(Roles = "User,Admin")]
+        [AllowAnonymous]
         [HttpGet("{id:long}")]
         public async Task<ActionResult<object>> GetListing(long id)
         {
@@ -61,6 +62,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     l.Id,
                     l.UserId,
                     l.CategoryId,
+                    CategoryName = l.Category != null ? l.Category.Name : null,
                     l.Title,
                     l.Description,
                     l.Price,
@@ -81,7 +83,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Listings/bycategory/{category}
-        [Authorize(Roles = "User,Admin")]
+        [AllowAnonymous]
         [HttpGet("bycategory/{category}")]
         public async Task<ActionResult<IEnumerable<object>>> GetListingByCategory(string category)
         {
@@ -91,6 +93,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     l.Id,
                     l.UserId,
                     l.CategoryId,
+                    CategoryName = l.Category != null ? l.Category.Name : null,
                     l.Title,
                     l.Description,
                     l.Price,
