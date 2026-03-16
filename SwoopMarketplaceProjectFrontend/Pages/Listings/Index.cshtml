@@ -1,37 +1,32 @@
 ﻿@page
 @model SwoopMarketplaceProjectFrontend.Pages.Listings.IndexModel
+@using SwoopMarketplaceProjectFrontend.Dtos
 @using SwoopMarketplaceProjectFrontend.Services
 @inject AuthSession AuthSession
 
 <h1>Listings</h1>
 
-
-
 <table >
     <tr>
-        @foreach (var n in Model.Listings)
-
-        {
-
+        <th>Title</th><th>Price</th><th>Category</th><th>Location</th><th>Description</th><th>Actions</th>
+    </tr>
+    @foreach (var item in Model.ListingsWithOwners)
+    {
+        var n = item.Listing;
+        <tr>
             <td>@n.Title</td>
             <td>@n.Price</td>
             <td>@n.CategoryId</td>
             <td>@n.Location</td>
             <td>@n.Description</td>
-            @if (AuthSession.IsInRole("Admin"))
-            {   
-                <td><a asp-page="./Delete">Törlés(Ne nyomd meg,teszt!)</a></td>      
-            }
-            @if (AuthSession.IsInRole("User") || AuthSession.IsInRole("Admin"))
-            {
-
-                <td><a asp-page="./Details" asp-route-azon="@n.Id">Megtekintés</a></td>
-
-            }
-        }
-
-    </tr>
-
-   
-
+            <td>
+                <a asp-page="./Details" asp-route-azon="@n.Id">Megtekintés</a>
+                @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
+                {
+                    <a asp-page="./Edit" asp-route-azon="@n.Id">Szerkesztés</a>
+                    <a asp-page="./Delete" asp-route-azon="@n.Id">Törlés</a>
+                }
+            </td>
+        </tr>
+    }
 </table>

@@ -1,7 +1,6 @@
 ﻿@page "{azon}"
 @model SwoopMarketplaceProjectFrontend.Pages.Listings.DetailsModel
 
-
 <h2>Hírdetés adatai</h2>
 @if (Model.Listing is null)
 {
@@ -16,7 +15,11 @@ else
         <dd class="col-sm-9">@Model.Listing.Title</dd>
         <dt class="col-sm-3">Leírás</dt>
         <dd class="col-sm-9">@Model.Listing.Description</dd>
- 
     </dl>
     <a class="btn btn-secondary" asp-page="./Index">Vissza</a>
+    @if (Model.CanEditOrDelete)
+    {
+        <a class="btn btn-primary" asp-page="./Edit" asp-route-azon="@Model.Listing.Id">Szerkesztés</a>
+        <a class="btn btn-danger" asp-page="./Delete" asp-route-azon="@Model.Listing.Id">Törlés</a>
+    }
 }

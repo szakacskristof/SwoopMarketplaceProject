@@ -15,18 +15,20 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
         private readonly ListingApi _api;
 
+        private readonly AuthSession _auth;
 
-        public List<ListingDto> Listings { get; private set; } = new();
+
+        public List<ListingWithOwnerDto> ListingsWithOwners { get; private set; } = new();
 
 
-        public IndexModel(ListingApi api) => _api = api;
+        public IndexModel(ListingApi api, AuthSession auth) { _api = api; _auth = auth; }
 
 
         public async Task OnGetAsync()
 
         {
 
-            Listings = await _api.GetAllAsync();
+            ListingsWithOwners = await _api.GetAllWithOwnersAsync();
 
         }
 

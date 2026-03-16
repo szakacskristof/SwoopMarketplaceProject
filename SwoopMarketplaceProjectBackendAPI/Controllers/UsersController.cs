@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 namespace SwoopMarketplaceProjectBackendAPI.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")]
     [ApiController]
     public class UsersController : ControllerBase
     {
@@ -23,29 +22,54 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Users
+        [AllowAnonymous]
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<object>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            // return lightweight user projection (avoid exposing PasswordHash)
+            var users = await _context.Users
+                .Select(u => new {
+                    u.Id,
+                    u.Username,
+                    u.Email,
+                    u.Phone,
+                    u.ProfileImageUrl,
+                    u.Bio,
+                    u.CreatedAt
+                })
+                .ToListAsync();
+            return Ok(users);
         }
 
         // GET: api/Users/5
+        [AllowAnonymous]
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(long id)
+        public async Task<ActionResult<object>> GetUser(long id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Where(u => u.Id == id)
+                .Select(u => new {
+                    u.Id,
+                    u.Username,
+                    u.Email,
+                    u.Phone,
+                    u.ProfileImageUrl,
+                    u.Bio,
+                    u.CreatedAt
+                })
+                .FirstOrDefaultAsync();
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            return user;
+            return Ok(user);
         }
 
         // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin,User")]
         public async Task<IActionResult> PutUser(long id, User user)
         {
             if (id != user.Id)
@@ -75,18 +99,19 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<User>> PostUser(User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
 
         // DELETE: api/Users/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteUser(long id)
         {
             var user = await _context.Users.FindAsync(id);
