@@ -54,15 +54,16 @@ namespace SwoopMarketplaceProjectBackendAPI
             options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
             // Identity DB (MYSQL)
-
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseMySql(builder.Configuration.GetConnectionString("IdentityConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("IdentityConnection"))));
 
             // Identity
-
             builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
+                // keep unique email
                 options.User.RequireUniqueEmail = true;
+
+     
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
@@ -88,9 +89,7 @@ namespace SwoopMarketplaceProjectBackendAPI
                 };
             });
 
-
             builder.Services.AddAuthorization();
-
 
             var app = builder.Build();
 
@@ -105,7 +104,6 @@ namespace SwoopMarketplaceProjectBackendAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 
