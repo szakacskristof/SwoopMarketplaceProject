@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using SwoopMarketplaceProject.Models;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace SwoopMarketplaceProjectBackendAPI.Controllers
@@ -19,6 +21,15 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public UsersController(SwoopContext context)
         {
             _context = context;
+        }
+
+        // DTO for updates - keeps binding small and safe
+        public class UserUpdateDto
+        {
+            public string? Username { get; set; }
+            public string? Phone { get; set; }
+            public string? ProfileImageUrl { get; set; }
+            public string? Bio { get; set; }
         }
 
         // GET: api/Users
@@ -70,14 +81,55 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         // PUT: api/Users/5
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin,User")]
-        public async Task<IActionResult> PutUser(long id, User user)
+        public async Task<IActionResult> PutUser(long id, [FromBody] UserUpdateDto dto)
         {
-            if (id != user.Id)
+            if (dto is null)
+                return BadRequest("No data supplied.");
+
+            // load existing user from DB
+            var existing = await _context.Users.FindAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            // resolve caller email from JWT claims
+            var callerEmail = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.Email || c.Type == "email" || c.Type == JwtRegisteredClaimNames.Email)
+                ?.Value;
+
+            if (string.IsNullOrWhiteSpace(callerEmail))
+                return Forbid();
+
+            // if caller is not admin, ensure ownership
+            if (!User.IsInRole("Admin") && !string.Equals(existing.Email, callerEmail, StringComparison.OrdinalIgnoreCase))
             {
-                return BadRequest();
+                return Forbid();
             }
 
-            _context.Entry(user).State = EntityState.Modified;
+            // Validate uniqueness if username changed
+            if (!string.IsNullOrWhiteSpace(dto.Username) &&
+                !string.Equals(dto.Username, existing.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                var usernameTaken = await _context.Users
+                    .AnyAsync(u => u.Id != id && u.Username.ToLower() == dto.Username.ToLower());
+                if (usernameTaken)
+                    return BadRequest("Username already in use.");
+            }
+
+            // Validate uniqueness if phone changed (non-empty)
+            if (!string.IsNullOrWhiteSpace(dto.Phone) &&
+                !string.Equals(dto.Phone, existing.Phone, StringComparison.OrdinalIgnoreCase))
+            {
+                var phoneTaken = await _context.Users
+                    .AnyAsync(u => u.Id != id && u.Phone == dto.Phone);
+                if (phoneTaken)
+                    return BadRequest("Phone number already in use.");
+            }
+
+            // Apply only allowed updates - do not overwrite PasswordHash, CreatedAt, Email or Id
+            existing.Username = string.IsNullOrWhiteSpace(dto.Username) ? existing.Username : dto.Username;
+            existing.Phone = dto.Phone ?? existing.Phone;
+            existing.ProfileImageUrl = dto.ProfileImageUrl ?? existing.ProfileImageUrl;
+            existing.Bio = dto.Bio ?? existing.Bio;
 
             try
             {
@@ -93,6 +145,11 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 {
                     throw;
                 }
+            }
+            catch (DbUpdateException dbEx)
+            {
+                // Unique constraint or other DB error
+                return StatusCode(500, dbEx.GetBaseException()?.Message ?? dbEx.Message);
             }
 
             return NoContent();

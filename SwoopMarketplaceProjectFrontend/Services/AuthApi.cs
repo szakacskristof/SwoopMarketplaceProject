@@ -4,10 +4,10 @@
     {
         private readonly IHttpClientFactory _f;
         public AuthApi(IHttpClientFactory f) => _f = f;
-        public async Task RegisterAsync(string email, string password, CancellationToken ct = default)
+        public async Task RegisterAsync(string email, string password, string phone,CancellationToken ct = default)
         {
             var client = _f.CreateClient("SwoopApi");
-            var resp = await client.PostAsJsonAsync("api/auth/register", new { email, password }, ct);
+            var resp = await client.PostAsJsonAsync("api/auth/register", new { email, password,phone }, ct);
             resp.EnsureSuccessStatusCode();
         }
         public async Task<string> LoginAsync(string email, string password, CancellationToken ct = default)

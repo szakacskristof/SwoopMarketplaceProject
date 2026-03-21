@@ -1,0 +1,49 @@
+﻿@page
+@model SwoopMarketplaceProjectFrontend.Pages.Users.MyProfileModel
+
+<h2>My profile</h2>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+@if (!string.IsNullOrEmpty(Model.Message))
+{
+    <div class="alert alert-success">@Model.Message</div>
+}
+
+@if (Model.User is null)
+{
+    <div class="alert alert-warning">Profile not found.</div>
+}
+else
+{
+    <form method="post">
+       
+        <div class="mb-3">
+            <label asp-for="User.Username" class="form-label">Username</label>
+            <input asp-for="User.Username" class="form-control" />
+            <span asp-validation-for="User.Username" class="text-danger"></span>
+        </div>
+       
+        <div class="mb-3">
+            <label asp-for="User.Phone" class="form-label">Phone</label>
+            <input asp-for="User.Phone" class="form-control" />
+            <span asp-validation-for="User.Phone" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="User.ProfileImageUrl" class="form-label">Profile image URL</label>
+            <input asp-for="User.ProfileImageUrl" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="User.Bio" class="form-label">Bio</label>
+            <textarea asp-for="User.Bio" class="form-control" rows="4"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a class="btn btn-secondary ms-2" asp-page="/Index">Cancel</a>
+    </form>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

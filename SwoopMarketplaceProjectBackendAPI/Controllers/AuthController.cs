@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
         _cfg = cfg;
     }
 
-    public record RegisterRequest(string Email, string Password);
+    public record RegisterRequest(string Email, string Password,string Phone);
     public record LoginRequest(string Email, string Password);
 
     [HttpPost("register")]
@@ -38,15 +38,19 @@ public class AuthController : ControllerBase
         
         if(result.Succeeded)
         {
-            await _sdbc.Users.AddAsync(new SwoopMarketplaceProject.Models.User(){
+            Guid guid = new Guid();
+            string randomusername="User"+guid.ToString();
+
+
+            await _sdbc.Users.AddAsync(new SwoopMarketplaceProject.Models.User() {
                 Email = user.Email,
-                Username = user.Email.Split('@')[0],
+                Username = randomusername,
                 CreatedAt = DateTime.UtcNow,
-                Bio= "",
-                Phone = "123",
-                ProfileImageUrl="",
-                PasswordHash= "PasswordHashPlaceholder"
-                
+                Bio = "",
+                Phone = req.Phone,
+                ProfileImageUrl = "",
+                PasswordHash = "PasswordHashPlaceholder"
+
 
 
 

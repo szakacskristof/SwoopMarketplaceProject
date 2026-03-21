@@ -40,11 +40,16 @@
                             <a class="nav-link text-dark" asp-page="/Categories/Index">Categories</a>
 
                         </li>
+                        @if(AuthSession.IsSignedIn){
+                            
+                      
                         <li class="nav-item">
 
-                            <a class="nav-link text-dark" asp-page="/Users/Userprofile">My profile</a>
+                            <a class="nav-link text-dark" asp-page="/Users/MyProfile">My profile</a>
 
                         </li>
+                        }
+
 
                         
                     </ul>

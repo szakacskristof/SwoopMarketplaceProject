@@ -8,7 +8,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
     {
         private readonly AuthApi _auth;
         public RegisterModel(AuthApi auth) => _auth = auth;
+
         [BindProperty] public string Email { get; set; } = "";
+        [BindProperty] public string Phone { get; set; } = "";
         [BindProperty] public string Password { get; set; } = "";
         public string? Error { get; set; }
         public void OnGet() { }
@@ -17,7 +19,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
         {
             try
             {
-                await _auth.RegisterAsync(Email, Password);
+                await _auth.RegisterAsync(Email, Password, Phone);
                 return RedirectToPage("/Account/Login");
             }
             catch (Exception ex)

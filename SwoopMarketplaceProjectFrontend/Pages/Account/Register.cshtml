@@ -16,6 +16,13 @@
         <input asp-for="Email" class="form-control" type="email" />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label">Telefonszám</label>
+        <input asp-for="Phone" class="form-control" type="tel" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+   
     <div class="mb-3">
         <label asp-for="Password" class="form-label">Jelszó</label>
         <input asp-for="Password" class="form-control" type="password" />
