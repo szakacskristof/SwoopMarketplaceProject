@@ -28,7 +28,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
             try
             {
                 var token = await _authApi.LoginAsync(Email, Password);
-                _session.SetToken(token);
+                _session.SetToken(token);   
                 if (!string.IsNullOrWhiteSpace(ReturnUrl))
                     return Redirect(ReturnUrl);
                 return RedirectToPage("/Index");

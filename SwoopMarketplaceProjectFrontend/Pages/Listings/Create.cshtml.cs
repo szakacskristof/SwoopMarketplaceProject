@@ -167,6 +167,22 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     foreach (var file in files)
                     {
                         if (file.Length == 0) continue;
+
+                        try
+                        {
+                            await _listingImageApi.UploadAsync(created.Id, file);
+                        }
+                        catch (Exception ex)
+                        {
+                            ModelState.AddModelError(string.Empty, $"Image upload failed: {ex.Message}");
+                        }
+                    }
+                }
+                if (files != null && files.Count > 0)
+                {
+                    foreach (var file in files)
+                    {
+                        if (file.Length == 0) continue;
                         using var ms = new MemoryStream();
                         await file.CopyToAsync(ms);
                         var bytes = ms.ToArray();

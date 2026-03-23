@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -83,6 +84,52 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return CreatedAtAction("GetListingImage", new { id = listingImage.Id }, listingImage);
         }
 
+        // New: POST: api/ListingImages/upload
+        // Accepts multipart/form-data with 'file' and 'listingId' -> saves file to wwwroot/images and stores relative URL in DB
+        [HttpPost("upload")]
+        public async Task<ActionResult<ListingImage>> UploadListingImage([FromForm] long listingId, [FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            // ensure the listing exists
+            var listing = await _context.Listings.FindAsync(listingId);
+            if (listing == null)
+                return BadRequest("Listing not found.");
+
+            // prepare images folder under wwwroot/images
+            var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var imagesDir = Path.Combine(wwwroot, "images");
+            if (!Directory.Exists(imagesDir))
+                Directory.CreateDirectory(imagesDir);
+
+            // sanitize and generate unique file name
+            var ext = Path.GetExtension(file.FileName);
+            var fileName = $"{Guid.NewGuid():N}{(string.IsNullOrEmpty(ext) ? "" : ext)}";
+            var filePath = Path.Combine(imagesDir, fileName);
+
+            // save file to disk
+            await using (var stream = System.IO.File.Create(filePath))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // build a relative URL that can be used by the frontend
+            var relativeUrl = $"/images/{fileName}";
+
+            var listingImage = new ListingImage
+            {
+                ListingId = listingId,
+                ImageUrl = relativeUrl,
+                IsPrimary = null
+            };
+
+            _context.ListingImages.Add(listingImage);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetListingImage", new { id = listingImage.Id }, listingImage);
+        }
+
         // DELETE: api/ListingImages/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteListingImage(long id)
@@ -91,6 +138,21 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             if (listingImage == null)
             {
                 return NotFound();
+            }
+
+            // optionally delete file from disk
+            try
+            {
+                var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var path = Path.Combine(wwwroot, listingImage.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(path))
+                {
+                    System.IO.File.Delete(path);
+                }
+            }
+            catch
+            {
+                // ignore file deletion errors
             }
 
             _context.ListingImages.Remove(listingImage);

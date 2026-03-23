@@ -1,4 +1,7 @@
 ﻿using SwoopMarketplaceProjectFrontend.Dtos;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 
 namespace SwoopMarketplaceProjectFrontend.Services
 {
@@ -10,53 +13,54 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
 
         public async Task<List<ListingImageDto>> GetAllAsync()
-
-        => await _f.CreateClient("SwoopApi")
-
-        .GetFromJsonAsync<List<ListingImageDto>>("api/ListingImages") ?? new();
+            => await _f.CreateClient("SwoopApi")
+                .GetFromJsonAsync<List<ListingImageDto>>("api/ListingImages") ?? new();
 
 
         public async Task<ListingImageDto?> GetByAzonAsync(int azon)
-
-        => await _f.CreateClient("SwoopApi")
-
-        .GetFromJsonAsync<ListingImageDto>($"api/ListingImages/{azon}");
+            => await _f.CreateClient("SwoopApi")
+                .GetFromJsonAsync<ListingImageDto>($"api/ListingImages/{azon}");
 
 
         public async Task CreateAsync(ListingImageDto dto)
-
         {
-
             var r = await _f.CreateClient("SwoopApi").PostAsJsonAsync("api/ListingImages", dto);
-
             r.EnsureSuccessStatusCode();
+        }
 
+        // New: upload file using multipart/form-data to api/ListingImages/upload
+        public async Task UploadAsync(long listingId, IFormFile file)
+        {
+            using var client = _f.CreateClient("SwoopApi");
+
+            using var content = new MultipartFormDataContent();
+
+            // file content
+            var streamContent = new StreamContent(file.OpenReadStream());
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType ?? "application/octet-stream");
+            content.Add(streamContent, "file", file.FileName);
+
+            // listing id field
+            content.Add(new StringContent(listingId.ToString()), "listingId");
+
+            var r = await client.PostAsync("api/ListingImages/upload", content);
+            r.EnsureSuccessStatusCode();
         }
 
 
         public async Task UpdateAsync(int azon, ListingImageDto dto)
-
         {
-
             var r = await _f.CreateClient("SwoopApi")
-
-            .PutAsJsonAsync($"api/ListingImages/{azon}", dto);
-
+                .PutAsJsonAsync($"api/ListingImages/{azon}", dto);
             r.EnsureSuccessStatusCode();
-
         }
 
 
         public async Task DeleteAsync(int azon)
-
         {
-
             var r = await _f.CreateClient("SwoopApi")
-
-            .DeleteAsync($"api/ListingImages/{azon}");
-
+                .DeleteAsync($"api/ListingImages/{azon}");
             r.EnsureSuccessStatusCode();
-
         }
     }
 }
