@@ -34,6 +34,22 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
         }
 
+        // New helper: find user by email via the Users endpoint
+        public async Task<UserDto?> GetByEmailAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email)) return null;
+            var client = _f.CreateClient("SwoopApi");
+            try
+            {
+                var all = await client.GetFromJsonAsync<List<UserDto>>("api/Users") ?? new();
+                return all.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
 
         public async Task UpdateAsync(long azon, UserDto dto)
         {

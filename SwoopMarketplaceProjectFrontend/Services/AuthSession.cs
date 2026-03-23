@@ -30,11 +30,47 @@ namespace SwoopMarketplaceProjectFrontend.Services
             var handler = new JwtSecurityTokenHandler();
             return handler.ReadJwtToken(token);
         }
+
+        // Look for several common email claim names used by different identity providers
         public string? GetEmail()
         {
             var jwt = ReadJwt();
-            return jwt?.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+            if (jwt is null) return null;
+
+            // Check typical claim types: ClaimTypes.Email, "email", JwtRegisteredClaimNames.Email
+            var claim = jwt.Claims.FirstOrDefault(c =>
+                string.Equals(c.Type, ClaimTypes.Email, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, "email", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email, StringComparison.OrdinalIgnoreCase)
+            );
+
+            return claim?.Value;
         }
+
+        // Try to extract numeric user id from common claim names: nameid, sub, id, userId
+        // Returns null if not present or not parseable as long.
+        public long? GetUserId()
+        {
+            var jwt = ReadJwt();
+            if (jwt is null) return null;
+
+            var claim = jwt.Claims.FirstOrDefault(c =>
+                string.Equals(c.Type, ClaimTypes.NameIdentifier, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, "nameid", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, "sub", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, "id", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, "userId", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(c.Type, "uid", StringComparison.OrdinalIgnoreCase)
+            );
+
+            if (claim == null) return null;
+
+            if (long.TryParse(claim.Value, out var id)) return id;
+
+            // sometimes sub or other claim may be GUID or string; ignore those
+            return null;
+        }
+
         public IReadOnlyList<string> GetRoles()
         {
             var jwt = ReadJwt();

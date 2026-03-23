@@ -1,4 +1,6 @@
 ﻿@using SwoopMarketplaceProjectFrontend.Services
+@using System.Security.Cryptography
+@using System.Text
 @inject AuthSession AuthSession
 <!DOCTYPE html>
 <html lang="en">
@@ -9,12 +11,54 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SwoopMarketplaceProjectFrontend.styles.css" asp-append-version="true" />
+    <style>
+        /* Floating CTA */
+        .fab {
+            position: fixed;
+            right: 20px;
+            bottom: 24px;
+            background: linear-gradient(90deg,#6c5ce7,#5a4de6);
+            color: #fff;
+            padding: 14px 18px;
+            border-radius: 999px;
+            box-shadow: 0 14px 36px rgba(92,71,229,0.20);
+            font-weight: 800;
+            text-decoration: none;
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .fab small {
+                font-weight: 600;
+                font-size: 12px;
+                opacity: 0.95;
+            }
+
+        /* profile avatar in navbar */
+        .nav-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+            .nav-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+    </style>
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">SwoopMarketplaceProjectFrontend</a>
+                <a class="navbar-brand" asp-area="" asp-page="/Index">Swoop</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -22,7 +66,7 @@
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Home</a>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Index">Főoldal</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
@@ -30,28 +74,12 @@
                         @if (AuthSession.IsSignedIn)
                         {
                             <li class="nav-item">
-
-                                <a class="nav-link text-dark" asp-page="/Listings/Index">Listings</a>
-
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Listings/Index">Listings</a>
                             </li>
                         }
-                        <li class="nav-item">
 
-                            <a class="nav-link text-dark" asp-page="/Categories/Index">Categories</a>
+                        @* Replace "My profile" text link with user's avatar when signed in *@
 
-                        </li>
-                        @if(AuthSession.IsSignedIn){
-                            
-                      
-                        <li class="nav-item">
-
-                            <a class="nav-link text-dark" asp-page="/Users/MyProfile">My profile</a>
-
-                        </li>
-                        }
-
-
-                        
                     </ul>
 
                     <ul class="navbar-nav ms-auto">
@@ -85,6 +113,23 @@
                                 </form>
                             </li>
                         }
+                        <!-- Header CTA -->
+                        @if (AuthSession.IsSignedIn)
+                        {
+                            var email = AuthSession.GetEmail();
+                            var avatarUrl = "/images/avatar.png";
+                            if (!string.IsNullOrWhiteSpace(email))
+                            {
+                                using var md5 = MD5.Create();
+                                var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+                                avatarUrl = $"https://www.gravatar.com/avatar/{hash}?s=128&d=identicon";
+                            }
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-page="/Users/MyProfile" title="My profile" style="display:flex;align-items:center;gap:8px">
+                                    <span class="nav-avatar"><img src="@avatarUrl" alt="profile" /></span>
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
@@ -101,7 +146,17 @@
             &copy; 2026 - SwoopMarketplaceProjectFrontend - <a asp-area="" asp-page="/Privacy">Privacy</a>
         </div>
     </footer>
-
+    @if (AuthSession.IsSignedIn)
+    {
+        <!-- Floating CTA -->
+        <a class="fab" asp-page="/Listings/Create" title="Hirdetés feladása">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <div>
+                <div style="line-height:1">Hirdetés feladása</div>
+                <small>Add new listing</small>
+            </div>
+        </a>
+    }
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
