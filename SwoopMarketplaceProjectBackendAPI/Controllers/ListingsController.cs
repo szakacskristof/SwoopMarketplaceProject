@@ -44,7 +44,11 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     l.Status,
                     l.Location,
                     l.CreatedAt,
-                    l.UpdatedAt
+                    l.UpdatedAt,
+                    ImageUrls = l.ListingImages
+                        .OrderByDescending(i => i.IsPrimary)
+                        .Select(i => i.ImageUrl)
+                        .ToList()
                 })
                 .ToListAsync();
 
