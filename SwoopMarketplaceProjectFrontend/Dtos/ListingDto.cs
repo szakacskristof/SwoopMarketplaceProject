@@ -8,7 +8,6 @@
 
         public long? CategoryId { get; set; }
 
-        // Added CategoryName for frontend display
         public string? CategoryName { get; set; }
 
         public string Title { get; set; } = null!;
@@ -26,5 +25,8 @@
         public DateTime CreatedAt { get; set; }
 
         public DateTime UpdatedAt { get; set; }
+
+        // 👉 EZ HIÁNYZott A DTO-BÓL, DE NAGYON FONTOS LESZ A KÉPEK MEGJELENÍTÉSÉHEZ
+        public List<string> ImageUrls { get; set; } = new();
     }
 }

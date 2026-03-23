@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace SwoopMarketplaceProject.Models;
 
@@ -31,7 +32,8 @@ public partial class Listing
 
     public virtual ICollection<ListingImage> ListingImages { get; set; } = new List<ListingImage>();
 
+    [JsonIgnore]
     public virtual ICollection<ListingView> ListingViews { get; set; } = new List<ListingView>();
-
-    public virtual User User { get; set; } = null!;
+    [JsonIgnore]
+    public virtual User? User { get; set; }
 }

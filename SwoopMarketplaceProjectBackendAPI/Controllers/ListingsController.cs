@@ -134,11 +134,15 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 return Forbid();
 
             var appUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
-            if (appUser is null)
-                return Forbid();
 
-            if (!User.IsInRole("Admin") && appUser.Id != existing.UserId)
-                return Forbid();
+            // Allow Admins even if they don't have a row in the custom users table.
+            if (!User.IsInRole("Admin"))
+            {
+                if (appUser is null)
+                    return Forbid();
+                if (appUser.Id != existing.UserId)
+                    return Forbid();
+            }
 
             existing.Title = listing.Title;
             existing.Description = listing.Description;
@@ -217,11 +221,15 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 return Forbid();
 
             var appUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
-            if (appUser is null)
-                return Forbid();
 
-            if (!User.IsInRole("Admin") && appUser.Id != listing.UserId)
-                return Forbid();
+            // Allow Admins to delete even if they don't have a corresponding row in the app users table.
+            if (!User.IsInRole("Admin"))
+            {
+                if (appUser is null)
+                    return Forbid();
+                if (appUser.Id != listing.UserId)
+                    return Forbid();
+            }
 
             _context.Listings.Remove(listing);
             await _context.SaveChangesAsync();
