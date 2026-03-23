@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using SwoopMarketplaceProject.Models;
 using SwoopMarketplaceProjectFrontend.Dtos;
 using SwoopMarketplaceProjectFrontend.Services;
 
@@ -18,6 +19,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
 
         [BindProperty]
         public UserDto? User { get; set; }
+
+       
 
         public string? Message { get; set; }
         public string? Error { get; set; }
@@ -46,8 +49,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
 
             if (!_auth.IsSignedIn) return RedirectToPage("/Account/Login");
 
-            if (!ModelState.IsValid)
-                return Page();
+            
 
             try
             {

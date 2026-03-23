@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -31,30 +32,30 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest req)
     {
-        var user = new IdentityUser { UserName = req.Email, Email = req.Email };
+        var user = new IdentityUser { UserName = req.Email, Email = req.Email};
         var result = await _users.CreateAsync(user, req.Password);
 
         await _users.AddToRoleAsync(user, "User");
         
         if(result.Succeeded)
         {
-            Guid guid = new Guid();
-            string randomusername="User"+guid.ToString();
+            Guid guid = Guid.NewGuid();
+            
+            string randomusername = "User" + guid.ToString().Split("-")[0];
 
+            User newUser = new User() {
 
-            await _sdbc.Users.AddAsync(new SwoopMarketplaceProject.Models.User() {
+                
                 Email = user.Email,
                 Username = randomusername,
                 CreatedAt = DateTime.UtcNow,
                 Bio = "",
                 Phone = req.Phone,
-                ProfileImageUrl = "",
-                PasswordHash = "PasswordHashPlaceholder"
+                ProfileImageUrl = ""
+                
+            };
 
-
-
-
-            });
+            await _sdbc.Users.AddAsync(newUser);
             await _sdbc.SaveChangesAsync();
 
         }

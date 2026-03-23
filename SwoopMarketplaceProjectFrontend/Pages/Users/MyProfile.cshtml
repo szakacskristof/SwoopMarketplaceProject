@@ -19,13 +19,22 @@
 else
 {
     <form method="post">
-       
+        @* keep the id as a hidden field so it posts back *@
+        <input asp-for="User.Id" type="hidden" />
+
+        <div class="mb-3">
+            <label asp-for="User.Email" class="form-label">Email</label>
+            @* show email as readonly (readonly fields are posted) so user sees it but cannot edit it *@
+            <input asp-for="User.Email" class="form-control" readonly />
+            <span asp-validation-for="User.Email" class="text-danger"></span>
+        </div>
+
         <div class="mb-3">
             <label asp-for="User.Username" class="form-label">Username</label>
             <input asp-for="User.Username" class="form-control" />
             <span asp-validation-for="User.Username" class="text-danger"></span>
         </div>
-       
+
         <div class="mb-3">
             <label asp-for="User.Phone" class="form-label">Phone</label>
             <input asp-for="User.Phone" class="form-control" />

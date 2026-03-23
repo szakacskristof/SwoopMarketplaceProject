@@ -13,7 +13,6 @@ public partial class User
 
     public string Phone { get; set; } = null!;
 
-    public string PasswordHash { get; set; } = null!;
 
     public string? ProfileImageUrl { get; set; }
 

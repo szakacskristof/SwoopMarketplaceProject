@@ -40,7 +40,9 @@ namespace SwoopMarketplaceProjectFrontend.Services
             // map to the small update payload expected by the backend
             var payload = new
             {
+                Id=dto.Id,
                 Username = dto.Username,
+                Email=dto.Email,
                 Phone = dto.Phone,
                 ProfileImageUrl = dto.ProfileImageUrl,
                 Bio = dto.Bio
@@ -50,6 +52,8 @@ namespace SwoopMarketplaceProjectFrontend.Services
                 .PutAsJsonAsync($"api/Users/{azon}", payload);
 
             r.EnsureSuccessStatusCode();
+
+            
         }
 
     

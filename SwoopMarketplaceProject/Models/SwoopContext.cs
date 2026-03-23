@@ -205,9 +205,7 @@ public partial class SwoopContext : DbContext
                 .HasColumnType("timestamp")
                 .HasColumnName("created_at");
             entity.Property(e => e.Email).HasColumnName("email");
-            entity.Property(e => e.PasswordHash)
-                .HasColumnType("text")
-                .HasColumnName("password_hash");
+           
             entity.Property(e => e.Phone)
                 .HasMaxLength(30)
                 .HasColumnName("phone");

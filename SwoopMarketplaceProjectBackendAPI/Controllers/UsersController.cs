@@ -26,6 +26,9 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         // DTO for updates - keeps binding small and safe
         public class UserUpdateDto
         {
+            public long Id { get; set; }
+
+            public string Email{ get; set; }
             public string? Username { get; set; }
             public string? Phone { get; set; }
             public string? ProfileImageUrl { get; set; }
@@ -41,8 +44,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             var users = await _context.Users
                 .Select(u => new {
                     u.Id,
-                    u.Username,
                     u.Email,
+                    u.Username,
                     u.Phone,
                     u.ProfileImageUrl,
                     u.Bio,
