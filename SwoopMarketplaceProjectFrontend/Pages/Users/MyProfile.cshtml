@@ -18,15 +18,24 @@
 }
 else
 {
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         @* keep the id as a hidden field so it posts back *@
         <input asp-for="User.Id" type="hidden" />
 
-        <div class="mb-3">
-            <label asp-for="User.Email" class="form-label">Email</label>
-            @* show email as readonly (readonly fields are posted) so user sees it but cannot edit it *@
-            <input asp-for="User.Email" class="form-control" readonly />
-            <span asp-validation-for="User.Email" class="text-danger"></span>
+        <div class="row mb-3">
+            <div class="col-md-8">
+                <label asp-for="User.Email" class="form-label">Email</label>
+                @* show email as readonly (readonly fields are posted) so user sees it but cannot edit it *@
+                <input asp-for="User.Email" class="form-control" readonly />
+                <span asp-validation-for="User.Email" class="text-danger"></span>
+            </div>
+
+            <div class="col-md-4 text-center">
+                <label class="form-label d-block">Current profile image</label>
+                <div style="width:140px;height:140px;margin:auto;border-radius:8px;overflow:hidden;border:1px solid #e6eef8;">
+                    <img id="currentProfileImg" src="@(Model.User.ProfileImageUrl ?? "/images/avatar.png")" style="width:100%;height:100%;object-fit:cover;display:block" />
+                </div>
+            </div>
         </div>
 
         <div class="mb-3">
@@ -40,14 +49,18 @@ else
             <input asp-for="User.Phone" class="form-control" />
             <span asp-validation-for="User.Phone" class="text-danger"></span>
         </div>
+
         <div class="mb-3">
-            <label asp-for="User.ProfileImageUrl" class="form-label">Profile image URL</label>
-            <input asp-for="User.ProfileImageUrl" class="form-control" />
+            <label class="form-label">Upload new profile picture</label>
+            <input asp-for="ProfileImageFile" type="file" accept="image/*" class="form-control" onchange="previewProfileImage(this)" />
+            <div class="form-text">Optional. First uploaded image will become your profile picture.</div>
         </div>
+
         <div class="mb-3">
             <label asp-for="User.Bio" class="form-label">Bio</label>
             <textarea asp-for="User.Bio" class="form-control" rows="4"></textarea>
         </div>
+
         <button type="submit" class="btn btn-primary">Save</button>
         <a class="btn btn-secondary ms-2" asp-page="/Index">Cancel</a>
     </form>
@@ -55,4 +68,16 @@ else
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function previewProfileImage(input) {
+            var file = input.files && input.files[0];
+            if (!file) return;
+            var img = document.getElementById('currentProfileImg');
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 }

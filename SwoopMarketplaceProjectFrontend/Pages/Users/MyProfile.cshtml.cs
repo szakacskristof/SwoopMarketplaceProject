@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SwoopMarketplaceProject.Models;
@@ -20,7 +21,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
         [BindProperty]
         public UserDto? User { get; set; }
 
-       
+        // file upload bind
+        [BindProperty]
+        public IFormFile? ProfileImageFile { get; set; }
 
         public string? Message { get; set; }
         public string? Error { get; set; }
@@ -35,7 +38,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
                 return Forbid();
 
             var users = await _userApi.GetAllAsync();
-            var u = users.FirstOrDefault(x =>x.Email==email);
+            var u = users.FirstOrDefault(x => x.Email == email);
             if (u is null)
                 return NotFound();
 
@@ -49,10 +52,18 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
 
             if (!_auth.IsSignedIn) return RedirectToPage("/Account/Login");
 
-            
-
             try
             {
+                // If a new profile image was selected, upload it first
+                if (ProfileImageFile != null && ProfileImageFile.Length > 0)
+                {
+                    var imageUrl = await _userApi.UploadProfileImageAsync(User.Id, ProfileImageFile);
+                    if (!string.IsNullOrWhiteSpace(imageUrl))
+                    {
+                        User.ProfileImageUrl = imageUrl;
+                    }
+                }
+
                 await _userApi.UpdateAsync(User.Id, User);
 
                 Message = "Profile saved.";

@@ -2,6 +2,7 @@
 @using System.Security.Cryptography
 @using System.Text
 @inject AuthSession AuthSession
+@inject UserApi UserApi
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -116,13 +117,40 @@
                         <!-- Header CTA -->
                         @if (AuthSession.IsSignedIn)
                         {
-                            var email = AuthSession.GetEmail();
                             var avatarUrl = "/images/avatar.png";
+                            var email = AuthSession.GetEmail();
                             if (!string.IsNullOrWhiteSpace(email))
                             {
-                                using var md5 = MD5.Create();
-                                var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
-                                avatarUrl = $"https://www.gravatar.com/avatar/{hash}?s=128&d=identicon";
+                                try
+                                {
+                                    var user = await UserApi.GetByEmailAsync(email);
+                                    if (user != null && !string.IsNullOrWhiteSpace(user.ProfileImageUrl))
+                                    {
+                                        // DB stores root-relative path like "/images/profilepictures/xxx.png"
+                                        var stored = user.ProfileImageUrl.Trim();
+                                        if (stored.StartsWith("/"))
+                                        {
+                                            avatarUrl = stored; // use stored root-relative path directly
+                                        }
+                                        else
+                                        {
+                                            // fallback: assume filename -> prefix profilepictures folder
+                                            avatarUrl = $"/images/profilepictures/{stored.TrimStart('/')}";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        using var md5 = MD5.Create();
+                                        var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+                                        avatarUrl = $"https://www.gravatar.com/avatar/{hash}?s=128&d=identicon";
+                                    }
+                                }
+                                catch
+                                {
+                                    using var md5 = MD5.Create();
+                                    var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+                                    avatarUrl = $"https://www.gravatar.com/avatar/{hash}?s=128&d=identicon";
+                                }
                             }
                             <li class="nav-item">
                                 <a class="nav-link" asp-area="" asp-page="/Users/MyProfile" title="My profile" style="display:flex;align-items:center;gap:8px">

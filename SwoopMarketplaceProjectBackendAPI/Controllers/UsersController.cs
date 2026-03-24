@@ -6,6 +6,7 @@ using SwoopMarketplaceProject.Models;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -26,9 +27,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         // DTO for updates - keeps binding small and safe
         public class UserUpdateDto
         {
-            public long Id { get; set; }
-
-            public string Email{ get; set; }
+            public long? Id { get; set; }             // accept optional Id in payload and validate it
+            public string? Email { get; set; }        // accept optional Email so frontend can send it
             public string? Username { get; set; }
             public string? Phone { get; set; }
             public string? ProfileImageUrl { get; set; }
@@ -44,8 +44,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             var users = await _context.Users
                 .Select(u => new {
                     u.Id,
-                    u.Email,
                     u.Username,
+                    u.Email,
                     u.Phone,
                     u.ProfileImageUrl,
                     u.Bio,
@@ -89,6 +89,10 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             if (dto is null)
                 return BadRequest("No data supplied.");
 
+            // if payload contains an Id, ensure it matches route id
+            if (dto.Id.HasValue && dto.Id.Value != id)
+                return BadRequest("Id in payload does not match route id.");
+
             // load existing user from DB
             var existing = await _context.Users.FindAsync(id);
             if (existing == null)
@@ -128,11 +132,27 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     return BadRequest("Phone number already in use.");
             }
 
-            // Apply only allowed updates - do not overwrite PasswordHash, CreatedAt, Email or Id
+            // Validate uniqueness if email changed (non-empty)
+            if (!string.IsNullOrWhiteSpace(dto.Email) &&
+                !string.Equals(dto.Email, existing.Email, StringComparison.OrdinalIgnoreCase))
+            {
+                var emailTaken = await _context.Users
+                    .AnyAsync(u => u.Id != id && u.Email.ToLower() == dto.Email.ToLower());
+                if (emailTaken)
+                    return BadRequest("Email already in use.");
+            }
+
+            // Apply only allowed updates - do not overwrite PasswordHash, CreatedAt, or Id
             existing.Username = string.IsNullOrWhiteSpace(dto.Username) ? existing.Username : dto.Username;
             existing.Phone = dto.Phone ?? existing.Phone;
             existing.ProfileImageUrl = dto.ProfileImageUrl ?? existing.ProfileImageUrl;
             existing.Bio = dto.Bio ?? existing.Bio;
+
+            // If frontend included Email and it passed uniqueness check, update it.
+            if (!string.IsNullOrWhiteSpace(dto.Email))
+            {
+                existing.Email = dto.Email;
+            }
 
             try
             {
@@ -184,6 +204,57 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // POST: api/Users/{id}/upload-photo
+        // Uploads profile photo, saves under wwwroot/images/profilepictures and updates user's ProfileImageUrl
+        [HttpPost("{id}/upload-photo")]
+        [Authorize(Roles = "Admin,User")]
+        [Consumes("multipart/form-data")]
+        public async Task<IActionResult> UploadProfilePhoto(long id, [FromForm] IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            var existing = await _context.Users.FindAsync(id);
+            if (existing == null)
+                return NotFound("User not found.");
+
+            // resolve caller email from JWT claims
+            var callerEmail = User.Claims
+                .FirstOrDefault(c => c.Type == ClaimTypes.Email || c.Type == "email" || c.Type == JwtRegisteredClaimNames.Email)
+                ?.Value;
+
+            if (string.IsNullOrWhiteSpace(callerEmail))
+                return Forbid();
+
+            // only owner or admin may update the photo
+            if (!User.IsInRole("Admin") && !string.Equals(existing.Email, callerEmail, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var imagesDir = Path.Combine(wwwroot, "images", "profilepictures");
+            if (!Directory.Exists(imagesDir))
+                Directory.CreateDirectory(imagesDir);
+
+            var ext = Path.GetExtension(file.FileName);
+            var fileName = $"{Guid.NewGuid():N}{(string.IsNullOrEmpty(ext) ? "" : ext)}";
+            var filePath = Path.Combine(imagesDir, fileName);
+
+            await using (var stream = System.IO.File.Create(filePath))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativeUrl = $"/images/profilepictures/{fileName}";
+
+            // update user record
+            existing.ProfileImageUrl = relativeUrl;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { imageUrl = relativeUrl });
         }
 
         private bool UserExists(long id)
