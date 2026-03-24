@@ -206,15 +206,23 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
+        // Request model used for form uploads (IFormFile must be a property here for Swagger)
+        public class UploadProfileImageRequest
+        {
+            public IFormFile File { get; set; } = null!;
+        }
+
         // POST: api/Users/{id}/upload-photo
         // Uploads profile photo, saves under wwwroot/images/profilepictures and updates user's ProfileImageUrl
         [HttpPost("{id}/upload-photo")]
         [Authorize(Roles = "Admin,User")]
         [Consumes("multipart/form-data")]
-        public async Task<IActionResult> UploadProfilePhoto(long id, [FromForm] IFormFile file)
+        public async Task<IActionResult> UploadProfilePhoto(long id, [FromForm] UploadProfileImageRequest request)
         {
-            if (file == null || file.Length == 0)
+            if (request?.File == null || request.File.Length == 0)
                 return BadRequest("No file uploaded.");
+
+            var file = request.File;
 
             var existing = await _context.Users.FindAsync(id);
             if (existing == null)

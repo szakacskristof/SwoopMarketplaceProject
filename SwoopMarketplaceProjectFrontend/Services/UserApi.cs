@@ -1,7 +1,9 @@
 ﻿using SwoopMarketplaceProject.Models;
 using SwoopMarketplaceProjectFrontend.Dtos;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace SwoopMarketplaceProjectFrontend.Services
 {
@@ -11,15 +13,49 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
         public UserApi(IHttpClientFactory f) => _f = f;
 
-
         public async Task<List<UserDto>> GetAllAsync()
-            => await _f.CreateClient("SwoopApi")
-                .GetFromJsonAsync<List<UserDto>>("api/Users") ?? new();
+        {
+            var client = _f.CreateClient("SwoopApi");
+            var users = await client.GetFromJsonAsync<List<UserDto>>("api/Users") ?? new();
 
+            // Normalize profile image URLs to absolute URLs so frontend img src points to the backend host
+            if (client.BaseAddress is not null)
+            {
+                for (int i = 0; i < users.Count; i++)
+                {
+                    var u = users[i];
+                    if (!string.IsNullOrWhiteSpace(u.ProfileImageUrl))
+                    {
+                        var raw = u.ProfileImageUrl.Trim();
+                        if (Uri.TryCreate(raw, UriKind.Absolute, out var _))
+                        {
+                            // already absolute - keep
+                            users[i].ProfileImageUrl = raw;
+                        }
+                        else
+                        {
+                            // convert root-relative or relative to absolute using client's BaseAddress
+                            users[i].ProfileImageUrl = new Uri(client.BaseAddress, raw.StartsWith("/") ? raw : $"/{raw}").ToString();
+                        }
+                    }
+                }
+            }
+
+            return users;
+        }
 
         public async Task<UserDto?> GetByAzonAsync(long azon)
-            => await _f.CreateClient("SwoopApi")
-                .GetFromJsonAsync<UserDto>($"api/Users/{azon}");
+        {
+            var client = _f.CreateClient("SwoopApi");
+            var user = await client.GetFromJsonAsync<UserDto>($"api/Users/{azon}");
+            if (user is not null && client.BaseAddress is not null && !string.IsNullOrWhiteSpace(user.ProfileImageUrl))
+            {
+                var raw = user.ProfileImageUrl.Trim();
+                if (!Uri.TryCreate(raw, UriKind.Absolute, out _))
+                    user.ProfileImageUrl = new Uri(client.BaseAddress, raw.StartsWith("/") ? raw : $"/{raw}").ToString();
+            }
+            return user;
+        }
 
         // helper to lookup by email (frontend uses this)
         public async Task<UserDto?> GetByEmailAsync(string email)
@@ -36,7 +72,6 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
         public async Task UpdateAsync(long azon, UserDto dto)
         {
-            // The backend accepts optional Id and Email in the update DTO.
             var payload = new
             {
                 Id = dto.Id,
@@ -75,7 +110,17 @@ namespace SwoopMarketplaceProjectFrontend.Services
             }
 
             var data = await response.Content.ReadFromJsonAsync<UploadResponse?>();
-            return data?.ImageUrl;
+            var imageUrl = data?.ImageUrl;
+
+            // normalize returned imageUrl to absolute if necessary
+            if (!string.IsNullOrWhiteSpace(imageUrl) && client.BaseAddress is not null)
+            {
+                var raw = imageUrl.Trim();
+                if (!Uri.TryCreate(raw, UriKind.Absolute, out _))
+                    imageUrl = new Uri(client.BaseAddress, raw.StartsWith("/") ? raw : $"/{raw}").ToString();
+            }
+
+            return imageUrl;
         }
 
         private class UploadResponse { public string ImageUrl { get; set; } = ""; }

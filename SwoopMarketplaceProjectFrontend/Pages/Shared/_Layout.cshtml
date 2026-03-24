@@ -123,20 +123,12 @@
                             {
                                 try
                                 {
+                                    // Use the ProfileImageUrl returned by UserApi directly.
+                                    // UserApi.GetByEmailAsync already normalizes to absolute URL when possible.
                                     var user = await UserApi.GetByEmailAsync(email);
                                     if (user != null && !string.IsNullOrWhiteSpace(user.ProfileImageUrl))
                                     {
-                                        // DB stores root-relative path like "/images/profilepictures/xxx.png"
-                                        var stored = user.ProfileImageUrl.Trim();
-                                        if (stored.StartsWith("/"))
-                                        {
-                                            avatarUrl = stored; // use stored root-relative path directly
-                                        }
-                                        else
-                                        {
-                                            // fallback: assume filename -> prefix profilepictures folder
-                                            avatarUrl = $"/images/profilepictures/{stored.TrimStart('/')}";
-                                        }
+                                        avatarUrl = user.ProfileImageUrl;
                                     }
                                     else
                                     {
