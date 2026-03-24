@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
 
-
 namespace SwoopMarketplaceProjectBackendAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -30,7 +29,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetListings()
         {
-            // return lightweight projection to avoid serializing navigation properties
+            // load basic listing projection including stored image urls
             var list = await _context.Listings
                 .Select(l => new {
                     l.Id,
@@ -52,7 +51,26 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(list);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            // sanitize and convert stored image paths to browser-friendly URLs
+            var cleaned = list.Select(l => new {
+                l.Id,
+                l.UserId,
+                l.CategoryId,
+                l.CategoryName,
+                l.Title,
+                l.Description,
+                l.Price,
+                l.Condition,
+                l.Status,
+                l.Location,
+                l.CreatedAt,
+                l.UpdatedAt,
+                ImageUrls = l.ImageUrls.Select(u => NormalizeImageUrl(u, baseUrl)).ToList()
+            });
+
+            return Ok(cleaned);
         }
 
         // GET: api/Listings/5
@@ -74,7 +92,12 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     l.Status,
                     l.Location,
                     l.CreatedAt,
-                    l.UpdatedAt
+                    l.UpdatedAt,
+                    ImageUrls = l.ListingImages
+                        .OrderByDescending(i => i.IsPrimary)
+                        .ThenBy(i => i.Id)
+                        .Select(i => i.ImageUrl)
+                        .ToList()
                 })
                 .FirstOrDefaultAsync();
 
@@ -83,7 +106,24 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 return NotFound();
             }
 
-            return Ok(listing);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var result = new {
+                listing.Id,
+                listing.UserId,
+                listing.CategoryId,
+                listing.CategoryName,
+                listing.Title,
+                listing.Description,
+                listing.Price,
+                listing.Condition,
+                listing.Status,
+                listing.Location,
+                listing.CreatedAt,
+                listing.UpdatedAt,
+                ImageUrls = listing.ImageUrls.Select(u => NormalizeImageUrl(u, baseUrl)).ToList()
+            };
+
+            return Ok(result);
         }
 
         // GET: api/Listings/bycategory/{category}
@@ -105,11 +145,33 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     l.Status,
                     l.Location,
                     l.CreatedAt,
-                    l.UpdatedAt
+                    l.UpdatedAt,
+                    ImageUrls = l.ListingImages
+                        .OrderByDescending(i => i.IsPrimary)
+                        .Select(i => i.ImageUrl)
+                        .ToList()
                 })
                 .ToListAsync();
 
-            return Ok(listings);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            var cleaned = listings.Select(l => new {
+                l.Id,
+                l.UserId,
+                l.CategoryId,
+                l.CategoryName,
+                l.Title,
+                l.Description,
+                l.Price,
+                l.Condition,
+                l.Status,
+                l.Location,
+                l.CreatedAt,
+                l.UpdatedAt,
+                ImageUrls = l.ImageUrls.Select(u => NormalizeImageUrl(u, baseUrl)).ToList()
+            });
+
+            return Ok(cleaned);
         }
 
         // PUT: api/Listings/5
@@ -244,6 +306,39 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         private bool ListingExists(long id)
         {
             return _context.Listings.Any(e => e.Id == id);
+        }
+
+        // Helper: normalize stored image URLs for browser consumption.
+        // - trims stray quotes/whitespace
+        // - if absolute URL => return as-is
+        // - if starts with "/" => prefix with baseUrl to produce an absolute URL
+        // - if looks like a bare filename => assume it lives in /images/
+        private static string NormalizeImageUrl(string? storedUrl, string baseUrl)
+        {
+            if (string.IsNullOrWhiteSpace(storedUrl))
+                return "/images/placeholder.png";
+
+            var u = storedUrl.Trim().Trim('\'', '"');
+
+            // already absolute?
+            if (Uri.TryCreate(u, UriKind.Absolute, out _))
+                return u;
+
+            // root-relative -> make absolute
+            if (u.StartsWith("/"))
+                return baseUrl + u;
+
+            // contains "images/" someplace -> extract tail
+            var idx = u.IndexOf("images/", StringComparison.OrdinalIgnoreCase);
+            if (idx >= 0)
+            {
+                var sub = u.Substring(idx);
+                if (!sub.StartsWith("/")) sub = "/" + sub;
+                return baseUrl + sub;
+            }
+
+            // fallback: assume filename -> /images/{filename}
+            return baseUrl + "/images/" + u.TrimStart('/');
         }
     }
 }

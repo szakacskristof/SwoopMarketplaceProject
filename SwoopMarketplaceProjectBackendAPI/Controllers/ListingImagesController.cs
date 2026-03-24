@@ -43,7 +43,6 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // PUT: api/ListingImages/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutListingImage(long id, ListingImage listingImage)
         {
@@ -74,7 +73,6 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/ListingImages
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<ListingImage>> PostListingImage(ListingImage listingImage)
         {
@@ -84,44 +82,50 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return CreatedAtAction("GetListingImage", new { id = listingImage.Id }, listingImage);
         }
 
-        // New: POST: api/ListingImages/upload
+        public class UploadListingImageRequest
+        {
+            public long ListingId { get; set; }
+            public IFormFile File { get; set; } = null!;
+        }
+
+        // POST: api/ListingImages/upload
         // Accepts multipart/form-data with 'file' and 'listingId' -> saves file to wwwroot/images and stores relative URL in DB
         [HttpPost("upload")]
-        public async Task<ActionResult<ListingImage>> UploadListingImage([FromForm] long listingId, [FromForm] IFormFile file)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<ListingImage>> UploadListingImage([FromForm] UploadListingImageRequest request)
         {
-            if (file == null || file.Length == 0)
+            if (request.File == null || request.File.Length == 0)
                 return BadRequest("No file uploaded.");
 
-            // ensure the listing exists
-            var listing = await _context.Listings.FindAsync(listingId);
+            var listing = await _context.Listings.FindAsync(request.ListingId);
             if (listing == null)
                 return BadRequest("Listing not found.");
 
-            // prepare images folder under wwwroot/images
             var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var imagesDir = Path.Combine(wwwroot, "images");
             if (!Directory.Exists(imagesDir))
                 Directory.CreateDirectory(imagesDir);
 
-            // sanitize and generate unique file name
-            var ext = Path.GetExtension(file.FileName);
+            var ext = Path.GetExtension(request.File.FileName);
             var fileName = $"{Guid.NewGuid():N}{(string.IsNullOrEmpty(ext) ? "" : ext)}";
             var filePath = Path.Combine(imagesDir, fileName);
 
-            // save file to disk
             await using (var stream = System.IO.File.Create(filePath))
             {
-                await file.CopyToAsync(stream);
+                await request.File.CopyToAsync(stream);
             }
 
-            // build a relative URL that can be used by the frontend
+            // IMPORTANT: store a web-friendly relative URL (no "wwwroot" or physical path).
+            // If your app is hosted under a path base, the browser will resolve relative URLs properly.
             var relativeUrl = $"/images/{fileName}";
 
+            // Determine primary image: if this listing has no images yet, mark primary = true
+            var hasAny = await _context.ListingImages.AnyAsync(li => li.ListingId == request.ListingId);
             var listingImage = new ListingImage
             {
-                ListingId = listingId,
+                ListingId = request.ListingId,
                 ImageUrl = relativeUrl,
-                IsPrimary = null
+                IsPrimary = hasAny ? false : true
             };
 
             _context.ListingImages.Add(listingImage);
@@ -144,7 +148,17 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             try
             {
                 var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var path = Path.Combine(wwwroot, listingImage.ImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                string localPath = listingImage.ImageUrl ?? string.Empty;
+
+                // If the stored URL is absolute, extract the local path part
+                if (Uri.TryCreate(localPath, UriKind.Absolute, out var uri))
+                {
+                    localPath = uri.LocalPath;
+                }
+
+                // Ensure we remove any leading application segment if present, then map to wwwroot
+                // localPath now looks like "/images/xxx" (or may include app base, but LocalPath handles it)
+                var path = Path.Combine(wwwroot, localPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                 if (System.IO.File.Exists(path))
                 {
                     System.IO.File.Delete(path);

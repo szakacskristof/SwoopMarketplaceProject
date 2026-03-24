@@ -145,8 +145,6 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                         Username = localPart,
                         Email = email,
                         Phone = "",
-                        // backend only validates presence of PasswordHash here; store a harmless placeholder
-                        
                         ProfileImageUrl = null,
                         Bio = null,
                         CreatedAt = DateTime.UtcNow
@@ -160,7 +158,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     return Page();
                 }
 
-                // handle image uploads from form files: convert to base64 data-URI and post to ListingImages API
+                // handle image uploads from form files: upload via multipart/form-data to API
                 var files = Request.Form?.Files;
                 if (files != null && files.Count > 0)
                 {
@@ -171,34 +169,6 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                         try
                         {
                             await _listingImageApi.UploadAsync(created.Id, file);
-                        }
-                        catch (Exception ex)
-                        {
-                            ModelState.AddModelError(string.Empty, $"Image upload failed: {ex.Message}");
-                        }
-                    }
-                }
-                if (files != null && files.Count > 0)
-                {
-                    foreach (var file in files)
-                    {
-                        if (file.Length == 0) continue;
-                        using var ms = new MemoryStream();
-                        await file.CopyToAsync(ms);
-                        var bytes = ms.ToArray();
-                        var base64 = Convert.ToBase64String(bytes);
-                        var dataUrl = $"data:{file.ContentType};base64,{base64}";
-
-                        var imgDto = new ListingImageDto
-                        {
-                            ListingId = created.Id,
-                            ImageUrl = dataUrl,
-                            IsPrimary = null
-                        };
-
-                        try
-                        {
-                            await _listingImageApi.CreateAsync(imgDto);
                         }
                         catch (Exception ex)
                         {

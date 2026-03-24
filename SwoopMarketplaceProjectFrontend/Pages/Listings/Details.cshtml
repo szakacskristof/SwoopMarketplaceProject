@@ -28,17 +28,49 @@ else
 {
     var l = Model.Listing;
     var avatar = GravatarUrl(Model.OwnerEmail);
-    var imageUrl = (l.ImageUrls != null && l.ImageUrls.Count > 0)
-             ? l.ImageUrls[0]
-             : "/images/placeholder.png";
+
+    // safe fallback list
+    var images = (l.ImageUrls ?? new List<string>()).Any() ? l.ImageUrls : new List<string> { "/images/placeholder.png" };
     <div style="max-width:1100px;margin:18px auto;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
-        <!-- Left / gallery -->
+        <!-- Left / gallery (Bootstrap carousel with thumbnails) -->
         <section style="flex:1 1 640px;min-width:320px;">
-            <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.06);">
-                <div style="position:relative;height:460px;background:#f5f7fb center/cover no-repeat;background-image:url('@imageUrl');">
-                    <div style="position:absolute;left:12px;top:12px;background:rgba(255,255,255,0.92);padding:8px 10px;border-radius:999px;font-weight:700;color:#2d3748">@(l.CategoryName ?? "Other")</div>
-                    <div style="position:absolute;right:12px;top:12px;background:linear-gradient(90deg,#6c5ce7,#5a4de6);color:#fff;padding:10px 14px;border-radius:10px;font-weight:800">@FormatPrice(l.Price)</div>
+            <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.06);padding:0;">
+                <div id="listingCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true">
+                    <div class="carousel-inner" style="height:460px;">
+                        @for (int i = 0; i < images.Count; i++)
+                        {
+                            var url = images[i];
+                            var active = i == 0 ? "active" : "";
+                            <div class="carousel-item @active" style="height:100%;">
+                                <img src="@url" class="d-block w-100" style="height:100%;object-fit:cover;display:block" alt="listing image @i" />
+                            </div>
+                        }
+                    </div>
+
+                    @if (images.Count > 1)
+                    {
+                        <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev" aria-label="Previous">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#listingCarousel" data-bs-slide="next" aria-label="Next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        </button>
+                    }
                 </div>
+
+                @* thumbnails *@
+                @if (images.Count > 1)
+                {
+                    <div class="d-flex gap-2 p-3" style="overflow-x:auto;background:#fff;border-top:1px solid #f1f5f9;">
+                        @for (int i = 0; i < images.Count; i++)
+                        {
+                            var url = images[i];
+                            <button type="button" class="btn p-0 border-0" data-bs-target="#listingCarousel" data-bs-slide-to="@i" style="flex:0 0 auto;">
+                                <img src="@url" alt="thumb @i" style="width:88px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e6eef8" />
+                            </button>
+                        }
+                    </div>
+                }
 
                 <div style="padding:16px;">
                     <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#111">@l.Title</h1>
@@ -65,7 +97,7 @@ else
                     </div>
                     <div style="flex:1">
                         <div style="font-weight:800;font-size:16px;color:#111">@((Model.OwnerEmail?.Split('@').FirstOrDefault()) ?? "Eladó")</div>
-                        <div style="font-size:13px;color:#6b7280">@Model.OwnerEmail ?? "E-mail nem elérhető"</div>
+                        <div style="font-size:13px;color:#6b7280">@Model.OwnerEmail</div>
                     </div>
                 </div>
 
@@ -97,4 +129,21 @@ else
             </div>
         </aside>
     </div>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+        <script>
+            // Ensure Bootstrap carousel touch support is enabled. Bootstrap 5 has built-in touch/swipe.
+            // No extra JS required, but add small keyboard support and ensure first thumbnail is focused.
+            (function () {
+                var carouselEl = document.getElementById('listingCarousel');
+                if (!carouselEl) return;
+                // enable keyboard navigation
+                carouselEl.addEventListener('keydown', function (e) {
+                    if (e.key === 'ArrowLeft') bootstrap.Carousel.getInstance(carouselEl).prev();
+                    if (e.key === 'ArrowRight') bootstrap.Carousel.getInstance(carouselEl).next();
+                });
+            })();
+        </script>
+    }
 }

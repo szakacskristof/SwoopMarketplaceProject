@@ -104,7 +104,7 @@ namespace SwoopMarketplaceProjectBackendAPI
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseStaticFiles();
             app.MapControllers();
 
             await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
