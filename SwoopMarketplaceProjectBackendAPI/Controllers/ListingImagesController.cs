@@ -134,6 +134,29 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return CreatedAtAction("GetListingImage", new { id = listingImage.Id }, listingImage);
         }
 
+        // POST: api/ListingImages/{id}/set-primary
+        // Atomically set the given image as primary for its listing and clear others.
+        [HttpPost("{id}/set-primary")]
+        public async Task<IActionResult> SetPrimary(long id)
+        {
+            var target = await _context.ListingImages.FindAsync(id);
+            if (target == null)
+                return NotFound();
+
+            var listingId = target.ListingId;
+
+            // Load all images for the listing and update IsPrimary in a single transaction
+            var images = await _context.ListingImages.Where(li => li.ListingId == listingId).ToListAsync();
+            foreach (var img in images)
+            {
+                img.IsPrimary = img.Id == id;
+                _context.Entry(img).State = EntityState.Modified;
+            }
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         // DELETE: api/ListingImages/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteListingImage(long id)
@@ -157,7 +180,6 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 }
 
                 // Ensure we remove any leading application segment if present, then map to wwwroot
-                // localPath now looks like "/images/xxx" (or may include app base, but LocalPath handles it)
                 var path = Path.Combine(wwwroot, localPath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                 if (System.IO.File.Exists(path))
                 {

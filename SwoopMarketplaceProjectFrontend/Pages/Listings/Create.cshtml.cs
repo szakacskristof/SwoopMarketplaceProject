@@ -160,6 +160,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
                 // handle image uploads from form files: upload via multipart/form-data to API
                 var files = Request.Form?.Files;
+                var createdImages = new List<ListingImageDto>();
                 if (files != null && files.Count > 0)
                 {
                     foreach (var file in files)
@@ -168,11 +169,32 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
                         try
                         {
-                            await _listingImageApi.UploadAsync(created.Id, file);
+                            var ci = await _listingImageApi.UploadAsync(created.Id, file);
+                            if (ci != null && ci.Id > 0)
+                                createdImages.Add(ci);
                         }
                         catch (Exception ex)
                         {
                             ModelState.AddModelError(string.Empty, $"Image upload failed: {ex.Message}");
+                        }
+                    }
+                }
+
+                // if the user selected a primary file index, set primary accordingly
+                var primaryIndexStr = Request.Form["primaryFileIndex"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(primaryIndexStr) && int.TryParse(primaryIndexStr, out var idx))
+                {
+                    if (idx >= 0 && idx < createdImages.Count)
+                    {
+                        try
+                        {
+                            await _listingImageApi.SetPrimaryAsync(created.Id, createdImages[idx].Id);
+                        }
+                        catch (Exception ex)
+                        {
+                            // non-fatal, but surface to user
+                            ModelState.AddModelError(string.Empty, $"Failed to set primary image: {ex.Message}");
+                            return Page();
                         }
                     }
                 }

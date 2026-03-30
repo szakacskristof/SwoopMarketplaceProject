@@ -4,19 +4,8 @@
 
 <h1 style="font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Hirdetés feladása</h1>
 
-<!-- Debug panel (temporary) -->
-@* <div style="background:#fff7f0;border:1px solid #ffe6d5;padding:10px;border-radius:8px;margin-bottom:12px">
-    <strong>Auth debug</strong>
-    <div style="font-size:13px;color:#333;margin-top:6px">
-        Signed in: @(AuthSession.IsSignedIn ? "Yes" : "No")<br />
-        Email (from JWT): @Model.DebugEmail<br />
-        UserId (from JWT): @(Model.DebugUserId?.ToString() ?? "null")<br />
-        Roles (from JWT): @string.Join(", ", Model.DebugRoles)<br />
-        Token present: @(string.IsNullOrEmpty(Model.DebugToken) ? "No" : "Yes")
-    </div>
-</div> *@
-
 <form method="post" enctype="multipart/form-data" style="max-width:760px;background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 26px rgba(2,6,23,0.06);">
+    @Html.AntiForgeryToken()
     <div asp-validation-summary="ModelOnly" style="color:#b91c1c;margin-bottom:8px"></div>
 
     <label style="font-weight:700">Title</label>
@@ -48,10 +37,86 @@
     <textarea asp-for="Input.Description" rows="6" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px"></textarea>
 
     <label style="font-weight:700">Images (optional)</label>
-    <input type="file" name="uploads" accept="image/*" multiple style="margin-bottom:12px" />
+    <input id="fileInput" type="file" name="uploads" accept="image/*" multiple style="margin-bottom:12px" />
+
+    <div id="preview" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+    @* hidden index of primary selected file (client-side) *@
+    <input type="hidden" name="primaryFileIndex" id="primaryFileIndex" value="" />
 
     <div style="display:flex;gap:10px">
         <button type="submit" style="flex:1;padding:10px 14px;background:#6c5ce7;color:#fff;border-radius:10px;border:none;font-weight:800">Create listing</button>
         <a asp-page="/Listings/Index" style="flex:1;padding:10px 14px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Cancel</a>
     </div>
 </form>
+
+@section Scripts {
+    <script>
+        (function () {
+            var input = document.getElementById('fileInput');
+            var preview = document.getElementById('preview');
+            var primaryIndex = document.getElementById('primaryFileIndex');
+
+            if (!input || !preview) return;
+
+            input.addEventListener('change', function () {
+                preview.innerHTML = '';
+                primaryIndex.value = '';
+
+                var files = Array.from(input.files || []);
+                if (files.length === 0) return;
+
+                files.forEach(function (f, idx) {
+                    var url = URL.createObjectURL(f);
+                    var wrapper = document.createElement('div');
+                    wrapper.style.width = '120px';
+                    wrapper.style.position = 'relative';
+
+                    var img = document.createElement('img');
+                    img.src = url;
+                    img.style.maxWidth = '100%';
+                    img.style.borderRadius = '6px';
+                    wrapper.appendChild(img);
+
+                    // radio for choosing primary
+                    var radioWrapper = document.createElement('div');
+                    radioWrapper.style.position = 'absolute';
+                    radioWrapper.style.left = '6px';
+                    radioWrapper.style.bottom = '6px';
+                    radioWrapper.style.display = 'flex';
+                    radioWrapper.style.gap = '6px';
+                    var radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'primarySelectorCreate';
+                    radio.value = idx.toString();
+                    radio.id = 'create_prim_' + idx;
+                    // default: first file selected
+                    if (idx === 0) radio.checked = true;
+
+                    radio.addEventListener('change', function () {
+                        primaryIndex.value = this.value;
+                    });
+
+                    // set initial primary index when first file exists
+                    if (idx === 0) primaryIndex.value = '0';
+
+                    var label = document.createElement('label');
+                    label.htmlFor = radio.id;
+                    label.className = 'small text-white';
+                    label.style.background = '#00000055';
+                    label.style.padding = '2px 6px';
+                    label.style.borderRadius = '6px';
+                    label.style.color = '#fff';
+                    label.style.fontSize = '12px';
+                    label.textContent = 'Primary';
+
+                    radioWrapper.appendChild(radio);
+                    radioWrapper.appendChild(label);
+                    wrapper.appendChild(radioWrapper);
+
+                    preview.appendChild(wrapper);
+                });
+            });
+        })();
+    </script>
+}

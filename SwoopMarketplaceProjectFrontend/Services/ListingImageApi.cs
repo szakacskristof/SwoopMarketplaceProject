@@ -28,8 +28,8 @@ namespace SwoopMarketplaceProjectFrontend.Services
             r.EnsureSuccessStatusCode();
         }
 
-        // New: upload file using multipart/form-data to api/ListingImages/upload
-        public async Task UploadAsync(long listingId, IFormFile file)
+        // Upload file and return created ListingImageDto (reads CreatedAtAction payload)
+        public async Task<ListingImageDto> UploadAsync(long listingId, IFormFile file)
         {
             using var client = _f.CreateClient("SwoopApi");
 
@@ -45,6 +45,10 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
             var r = await client.PostAsync("api/ListingImages/upload", content);
             r.EnsureSuccessStatusCode();
+
+            // try deserialize the created object
+            var created = await r.Content.ReadFromJsonAsync<ListingImageDto>();
+            return created ?? new ListingImageDto { Id = 0, ListingId = listingId, ImageUrl = "" };
         }
 
 
@@ -60,6 +64,13 @@ namespace SwoopMarketplaceProjectFrontend.Services
         {
             var r = await _f.CreateClient("SwoopApi")
                 .DeleteAsync($"api/ListingImages/{azon}");
+            r.EnsureSuccessStatusCode();
+        }
+
+        // Set primary image for a listing (server provides atomic endpoint)
+        public async Task SetPrimaryAsync(long listingId, long primaryImageId)
+        {
+            var r = await _f.CreateClient("SwoopApi").PostAsync($"api/ListingImages/{primaryImageId}/set-primary", null);
             r.EnsureSuccessStatusCode();
         }
     }

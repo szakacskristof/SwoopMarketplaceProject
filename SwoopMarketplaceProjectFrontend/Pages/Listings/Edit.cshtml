@@ -20,8 +20,55 @@
 }
 else
 {
-    <form method="post" enctype="multipart/form-data" style="max-width:760px;">
+    @* Existing images (radio selector placed here but radios are outside main form).
+       We will copy the selected radio value into the hidden input inside the main form on submit. *@
+    <label class="form-label">Existing images</label>
+    <div class="mb-3">
+        @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var img in Model.ExistingImages)
+                {
+                    <div style="width:120px;position:relative">
+                        <img src="@img.ImageUrl" alt="img" style="max-width:100%;border-radius:6px" />
+                        <div style="position:absolute;left:6px;bottom:6px;">
+                            <input type="radio" name="primarySelector" id="prim_@img.Id" value="@img.Id" @(img.IsPrimary == true ? "checked" : "") />
+                            <label for="prim_@img.Id" class="small text-white" style="background:#00000055;padding:2px 6px;border-radius:6px;color:#fff;font-size:12px">Primary</label>
+                        </div>
+                        @if (img.Id > 0)
+                        {
+                            <form method="post" asp-page-handler="DeleteImage" style="position:absolute;top:6px;right:6px;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@img.Id" />
+                                <input type="hidden" name="listingId" value="@Model.Input.Id" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this image?');">×</button>
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.Input.ImageUrls != null && Model.Input.ImageUrls.Any())
+        {
+            <div class="d-flex flex-wrap gap-2">
+                @foreach (var url in Model.Input.ImageUrls)
+                {
+                    <div style="width:120px;position:relative">
+                        <img src="@url" alt="img" style="max-width:100%;border-radius:6px" />
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-muted">No images</div>
+        }
+    </div>
+
+    <form method="post" enctype="multipart/form-data" style="max-width:760px;" id="editForm">
         <input asp-for="Input.Id" type="hidden" />
+        @* hidden primary Image id copied by JS on submit *@
+        <input type="hidden" name="primaryImageId" value="" />
 
         <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
 
@@ -55,25 +102,6 @@ else
         <textarea asp-for="Input.Description" rows="6" class="form-control mb-2"></textarea>
         <span asp-validation-for="Input.Description" class="text-danger"></span>
 
-        <label class="form-label">Existing images</label>
-        <div class="mb-2">
-            @if (Model.Input.ImageUrls?.Any() == true)
-            {
-                <div class="d-flex flex-wrap gap-2">
-                    @foreach (var url in Model.Input.ImageUrls)
-                    {
-                        <div style="width:120px">
-                            <img src="@url" alt="img" style="max-width:100%;border-radius:6px" />
-                        </div>
-                    }
-                </div>
-            }
-            else
-            {
-                <div class="text-muted">No images</div>
-            }
-        </div>
-
         <label class="form-label">Add new images (optional)</label>
         <input type="file" name="uploads" accept="image/*" multiple class="form-control mb-3" />
 
@@ -86,4 +114,18 @@ else
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // copy selected radio value into hidden input inside the main form before submit
+        (function () {
+            var form = document.getElementById('editForm');
+            if (!form) return;
+            form.addEventListener('submit', function () {
+                var sel = document.querySelector('input[name="primarySelector"]:checked');
+                if (sel) {
+                    var hidden = form.querySelector('input[name="primaryImageId"]');
+                    if (hidden) hidden.value = sel.value;
+                }
+            });
+        })();
+    </script>
 }
