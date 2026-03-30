@@ -65,7 +65,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             var lwo = await _api.GetByAzonWithOwnerAsync(azon);
             if (lwo is null)
             {
-                Error = "Listing not found.";
+                Error = "Hírdetés nem található!";
                 return RedirectToPage(new { CategoryId });
             }
 
@@ -74,14 +74,14 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
             if (!(_auth.IsInRole("Admin") || string.Equals(callerEmail, ownerEmail, StringComparison.OrdinalIgnoreCase)))
             {
-                Error = "You are not authorized to delete this listing.";
+                Error = "A fiók nincs azonosítva a hírdetés törléséhez!";
                 return RedirectToPage(new { CategoryId });
             }
 
             try
             {
                 await _api.DeleteAsync(azon);
-                Message = "Listing deleted.";
+                Message = "Hírdetés törölve!";
                 return RedirectToPage(new { CategoryId });
             }
             catch (HttpRequestException ex)

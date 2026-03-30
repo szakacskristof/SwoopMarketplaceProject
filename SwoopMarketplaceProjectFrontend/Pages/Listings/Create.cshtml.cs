@@ -40,10 +40,10 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
             public decimal Price { get; set; }
 
-            [Required(ErrorMessage = "Please select a category.")]
+            [Required(ErrorMessage = "Kérlek válassz kategóriát!")]
             public long? CategoryId { get; set; }
 
-            public string Condition { get; set; } = "used";
+            public string Condition { get; set; } = "használt";
 
             public string? Location { get; set; }
 
@@ -91,7 +91,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             var roles = _auth.GetRoles();
             if (!roles.Any(r => r.Equals("User", StringComparison.OrdinalIgnoreCase) || r.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
             {
-                ModelState.AddModelError(string.Empty, "Your account is missing the required role ('User' or 'Admin'). The API requires one of these roles to create listings.");
+                ModelState.AddModelError(string.Empty, "A fiókod nem rendelkezik az adott jogosultságokkal. A hírdetés feladásához Admin/Felhasználó jogosultság szükséges!");
                 return Page();
             }
 
@@ -134,7 +134,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     var email = _auth.GetEmail();
                     if (string.IsNullOrWhiteSpace(email))
                     {
-                        ModelState.AddModelError(string.Empty, "Current user profile not found; cannot create listing.");
+                        ModelState.AddModelError(string.Empty, "A felhasználói profil nem található, nem hozható létre hírdetés!");
                         return Page();
                     }
 
@@ -154,7 +154,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                 var created = await _listingApi.CreateAsync(dto);
                 if (created == null)
                 {
-                    ModelState.AddModelError(string.Empty, "Failed to create listing.");
+                    ModelState.AddModelError(string.Empty, "Nem sikerült a hírdetés feladása.");
                     return Page();
                 }
 
@@ -175,7 +175,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                         }
                         catch (Exception ex)
                         {
-                            ModelState.AddModelError(string.Empty, $"Image upload failed: {ex.Message}");
+                            ModelState.AddModelError(string.Empty, $"Kép feltöltése sikertelen!: {ex.Message}");
                         }
                     }
                 }
@@ -196,7 +196,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                         catch (Exception ex)
                         {
                             // Provide useful diagnostics to the user if SetPrimary fails
-                            ModelState.AddModelError(string.Empty, $"Failed to set primary image: {ex.Message}");
+                            ModelState.AddModelError(string.Empty, $"Megjelenõ kép kiválasztása sikertelen: {ex.Message}");
                             // Show the page so user sees the error and can retry
                             return Page();
                         }
@@ -204,7 +204,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     else
                     {
                         // Index out of range — show diagnostics so you can see what's being posted
-                        ModelState.AddModelError(string.Empty, $"Primary index {idx} not in uploaded images range (0..{Math.Max(0, createdImages.Count - 1)}). Uploaded image IDs: {string.Join(", ", createdImages.Select(ci => ci.Id))}");
+                        ModelState.AddModelError(string.Empty, $"A kiválasztott kép {idx} nincs benne a feltöltött képek listában (0..{Math.Max(0, createdImages.Count - 1)}). feltöltött képek: {string.Join(", ", createdImages.Select(ci => ci.Id))}");
                         return Page();
                     }
                 }

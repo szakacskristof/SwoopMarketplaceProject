@@ -82,7 +82,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             // ensure id present
             if (Input.Id == 0)
             {
-                Error = "Missing listing id.";
+                Error = "Hiányzó hirdetés ID";
                 return Page();
             }
 
@@ -107,7 +107,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                         catch (Exception ex)
                         {
                             // non-fatal: collect error to show to user
-                            ModelState.AddModelError(string.Empty, $"Image upload failed: {ex.Message}");
+                            ModelState.AddModelError(string.Empty, $"Kép feltöltése sikertelen!: {ex.Message}");
                         }
                     }
                 }
@@ -123,7 +123,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     catch
                     {
                         // ignore primary set failures (non-fatal), but record message
-                        TempData["ImageDeleteError"] = "Failed to set primary image.";
+                        TempData["ImageDeleteError"] = "Megjelenõ kép kiválasztása sikertelen!";
                     }
                 }
 

@@ -2,6 +2,7 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Listings.DetailsModel
 @using System.Security.Cryptography
 @using System.Text
+@using SwoopMarketplaceProjectFrontend.Services
 
 @functions {
     private static string GravatarUrl(string? email, int size = 128)
@@ -82,7 +83,7 @@ else
                     </div>
 
                     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-                        <span style="padding:8px 10px;border-radius:10px;background:#f7f9fc;color:#374151;font-weight:700">Állapot: @l.Condition</span>
+                        <span style="padding:8px 10px;border-radius:10px;background:#f7f9fc;color:#374151;font-weight:700">Állapot: @ConditionMapper.FriendlyName(l.Condition)</span>
                     </div>
                 </div>
             </div>

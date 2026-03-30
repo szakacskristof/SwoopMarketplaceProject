@@ -29,11 +29,11 @@
 }
 
 <div style="padding:8px 12px;max-width:1200px;margin:0 auto;">
-    <h1 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Marketplace</h1>
+    <h1 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Swoop</h1>
 
     @* Category selector (GET form so filter is bookmarkable) *@
     <form method="get" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
-        <label class="form-label" style="margin:0 8px 0 0;font-weight:700">Filter by category:</label>
+        <label class="form-label" style="margin:0 8px 0 0;font-weight:700">Szűrés kategória alapján:</label>
         <select name="CategoryId" onchange="this.form.submit()" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;">
             <option value="">Minden kategória</option>
             @foreach (var c in Model.Categories)
@@ -90,7 +90,7 @@
                             </div>
                             <div>
                                 <div style="font-weight:600;font-size:13px;">@((item.OwnerEmail?.Split('@').FirstOrDefault()) )</div>
-                                <div style="font-size:12px;color:#6b7280;">@(n.Condition ?? "")</div>
+                                <div style="font-size:12px;color:#6b7280;">@ConditionMapper.FriendlyName(n.Condition)</div>
                             </div>
                         </div>
 
