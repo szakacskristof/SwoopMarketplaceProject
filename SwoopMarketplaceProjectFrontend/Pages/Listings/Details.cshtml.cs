@@ -18,7 +18,12 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         }
         public ListingDto? Listing { get; private set; }
         public string? OwnerEmail { get; private set; }
-        public bool CanEditOrDelete { get; private set; }
+
+        // show/hide controls separately so behavior matches Index:
+        // - Edit: only owner
+        // - Delete: owner OR Admin
+        public bool CanEdit { get; private set; }
+        public bool CanDelete { get; private set; }
 
         public async Task<IActionResult> OnGetAsync(int azon)
         {
@@ -29,8 +34,16 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                 return NotFound();
             Listing = lw.Listing;
             OwnerEmail = lw.OwnerEmail;
-            // decide permission
-            CanEditOrDelete = _auth.IsInRole("Admin") || string.Equals(_auth.GetEmail(), OwnerEmail, StringComparison.OrdinalIgnoreCase);
+
+            var currentEmail = _auth.GetEmail();
+            var isAdmin = _auth.IsInRole("Admin");
+
+            // owner may edit; admin should not be allowed to edit (keep consistent with Index)
+            CanEdit = !string.IsNullOrWhiteSpace(currentEmail) && string.Equals(currentEmail, OwnerEmail, StringComparison.OrdinalIgnoreCase);
+
+            // delete allowed for owner or admin
+            CanDelete = isAdmin || CanEdit;
+
             return Page();
         }
     }

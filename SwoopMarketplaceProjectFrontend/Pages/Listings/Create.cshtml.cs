@@ -9,18 +9,18 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
     public class CreateModel : PageModel
     {
         private readonly ListingApi _listingApi;
-        private readonly CategoryApi? _categoryApi; // optional
-        private readonly ListingImageApi _listingImageApi;
+        private readonly CategoryApi? _category_api;
+        private readonly ListingImageApi _listing_image_api;
         private readonly AuthSession _auth;
         private readonly UserApi _userApi;
 
         public CreateModel(ListingApi listingApi, ListingImageApi listingImageApi, AuthSession auth, UserApi userApi, CategoryApi? categoryApi = null)
         {
             _listingApi = listingApi;
-            _listingImageApi = listingImageApi;
+            _listing_image_api = listingImageApi;
             _auth = auth;
             _userApi = userApi;
-            _categoryApi = categoryApi;
+            _category_api = categoryApi;
         }
 
         public record CategoryItem(long Id, string Name);
@@ -57,9 +57,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         public async Task OnGetAsync()
         {
             Categories.Clear();
-            if (_categoryApi != null)
+            if (_category_api != null)
             {
-                var cats = await _categoryApi.GetAllAsync();
+                var cats = await _category_api.GetAllAsync();
                 if (cats != null)
                 {
                     foreach (var c in cats)
@@ -169,7 +169,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
                         try
                         {
-                            var ci = await _listingImageApi.UploadAsync(created.Id, file);
+                            var ci = await _listing_image_api.UploadAsync(created.Id, file);
                             if (ci != null && ci.Id > 0)
                                 createdImages.Add(ci);
                         }
@@ -180,23 +180,38 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     }
                 }
 
-                // if the user selected a primary file index, set primary accordingly
+                // Primary selection: check both the hidden index and the radio-group name (safety)
                 var primaryIndexStr = Request.Form["primaryFileIndex"].FirstOrDefault();
+                if (string.IsNullOrWhiteSpace(primaryIndexStr))
+                    primaryIndexStr = Request.Form["primarySelectorCreate"].FirstOrDefault();
+
                 if (!string.IsNullOrWhiteSpace(primaryIndexStr) && int.TryParse(primaryIndexStr, out var idx))
                 {
                     if (idx >= 0 && idx < createdImages.Count)
                     {
                         try
                         {
-                            await _listingImageApi.SetPrimaryAsync(created.Id, createdImages[idx].Id);
+                            await _listing_image_api.SetPrimaryAsync(created.Id, createdImages[idx].Id);
                         }
                         catch (Exception ex)
                         {
-                            // non-fatal, but surface to user
+                            // Provide useful diagnostics to the user if SetPrimary fails
                             ModelState.AddModelError(string.Empty, $"Failed to set primary image: {ex.Message}");
+                            // Show the page so user sees the error and can retry
                             return Page();
                         }
                     }
+                    else
+                    {
+                        // Index out of range — show diagnostics so you can see what's being posted
+                        ModelState.AddModelError(string.Empty, $"Primary index {idx} not in uploaded images range (0..{Math.Max(0, createdImages.Count - 1)}). Uploaded image IDs: {string.Join(", ", createdImages.Select(ci => ci.Id))}");
+                        return Page();
+                    }
+                }
+                else
+                {
+                    // No explicit primary chosen — keep server default (first uploaded becomes primary) but inform user in debug mode
+                    // (no error; proceed)
                 }
 
                 return RedirectToPage("/Listings/Details", new { azon = created.Id });

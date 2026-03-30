@@ -92,7 +92,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         // Accepts multipart/form-data with 'file' and 'listingId' -> saves file to wwwroot/images and stores relative URL in DB
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
-        public async Task<ActionResult<ListingImage>> UploadListingImage([FromForm] UploadListingImageRequest request)
+        public async Task<ActionResult> UploadListingImage([FromForm] UploadListingImageRequest request)
         {
             if (request.File == null || request.File.Length == 0)
                 return BadRequest("No file uploaded.");
@@ -131,7 +131,16 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context.ListingImages.Add(listingImage);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetListingImage", new { id = listingImage.Id }, listingImage);
+            // Return a minimal payload to avoid serializing navigation properties (prevents JSON cycles)
+            var result = new
+            {
+                Id = listingImage.Id,
+                ListingId = listingImage.ListingId,
+                ImageUrl = listingImage.ImageUrl,
+                IsPrimary = listingImage.IsPrimary
+            };
+
+            return CreatedAtAction("GetListingImage", new { id = listingImage.Id }, result);
         }
 
         // POST: api/ListingImages/{id}/set-primary
