@@ -27,7 +27,8 @@
 else
 {
     var l = Model.Listing;
-    var avatar = GravatarUrl(Model.OwnerEmail);
+    // Prefer stored profile image when available; fallback to gravatar
+    var avatar = !string.IsNullOrWhiteSpace(Model.OwnerProfileImageUrl) ? Model.OwnerProfileImageUrl : GravatarUrl(Model.OwnerEmail);
 
     // safe fallback list
     var images = (l.ImageUrls ?? new List<string>()).Any() ? l.ImageUrls : new List<string> { "/images/placeholder.png" };
@@ -81,7 +82,7 @@ else
                     </div>
 
                     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-                        <span style="padding:8px 10px;border-radius:10px;background:#f7f9fc;color:#374151;font-weight:700">Condition: @l.Condition</span>
+                        <span style="padding:8px 10px;border-radius:10px;background:#f7f9fc;color:#374151;font-weight:700">Állapot: @l.Condition</span>
                     </div>
                 </div>
             </div>

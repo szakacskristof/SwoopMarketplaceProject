@@ -25,26 +25,42 @@ namespace SwoopMarketplaceProjectFrontend.Services
             var listings = await client.GetFromJsonAsync<List<ListingDto>>("api/Listings") ?? new();
             var result = new List<ListingWithOwnerDto>();
             var userIds = listings.Select(l => l.UserId).Distinct();
-            var ownerMap = new Dictionary<long, string?>();
+            var ownerMapEmail = new Dictionary<long, string?>();
+            var ownerMapImage = new Dictionary<long, string?>();
+
             foreach (var uid in userIds)
             {
                 try
                 {
                     var u = await client.GetFromJsonAsync<UserDto>($"api/Users/{uid}");
-                    ownerMap[uid] = u?.Email;
+                    var email = u?.Email;
+                    string? profileImage = null;
+                    if (u != null && !string.IsNullOrWhiteSpace(u.ProfileImageUrl))
+                    {
+                        var raw = u.ProfileImageUrl.Trim();
+                        if (!Uri.TryCreate(raw, UriKind.Absolute, out _))
+                            profileImage = new Uri(client.BaseAddress, raw.StartsWith("/") ? raw : $"/{raw}").ToString();
+                        else
+                            profileImage = raw;
+                    }
+                    ownerMapEmail[uid] = email;
+                    ownerMapImage[uid] = profileImage;
                 }
                 catch
                 {
-                    ownerMap[uid] = null;
+                    ownerMapEmail[uid] = null;
+                    ownerMapImage[uid] = null;
                 }
             }
             foreach (var l in listings)
             {
-                ownerMap.TryGetValue(l.UserId, out var email);
+                ownerMapEmail.TryGetValue(l.UserId, out var email);
+                ownerMapImage.TryGetValue(l.UserId, out var image);
                 result.Add(new ListingWithOwnerDto
                 {
                     Listing = l,
-                    OwnerEmail = email
+                    OwnerEmail = email,
+                    OwnerProfileImageUrl = image
                 });
             }
             return result;
@@ -56,13 +72,21 @@ namespace SwoopMarketplaceProjectFrontend.Services
             var listing = await client.GetFromJsonAsync<ListingDto>($"api/Listings/{azon}");
             if (listing is null) return null;
             string? ownerEmail = null;
+            string? ownerImage = null;
             try
             {
                 var u = await client.GetFromJsonAsync<UserDto>($"api/Users/{listing.UserId}");
                 ownerEmail = u?.Email;
+                if (u != null && !string.IsNullOrWhiteSpace(u.ProfileImageUrl))
+                {
+                    var raw = u.ProfileImageUrl.Trim();
+                    ownerImage = !Uri.TryCreate(raw, UriKind.Absolute, out _)
+                        ? new Uri(client.BaseAddress, raw.StartsWith("/") ? raw : $"/{raw}").ToString()
+                        : raw;
+                }
             }
             catch { }
-            return new ListingWithOwnerDto { Listing = listing, OwnerEmail = ownerEmail };
+            return new ListingWithOwnerDto { Listing = listing, OwnerEmail = ownerEmail, OwnerProfileImageUrl = ownerImage };
         }
 
         public async Task<ListingDto?> CreateAsync(ListingDto dto)

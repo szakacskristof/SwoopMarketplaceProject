@@ -19,6 +19,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         public ListingDto? Listing { get; private set; }
         public string? OwnerEmail { get; private set; }
 
+        // New: optional owner profile image URL
+        public string? OwnerProfileImageUrl { get; private set; }
+
         // show/hide controls separately so behavior matches Index:
         // - Edit: only owner
         // - Delete: owner OR Admin
@@ -34,6 +37,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                 return NotFound();
             Listing = lw.Listing;
             OwnerEmail = lw.OwnerEmail;
+            OwnerProfileImageUrl = lw.OwnerProfileImageUrl;
 
             var currentEmail = _auth.GetEmail();
             var isAdmin = _auth.IsInRole("Admin");
