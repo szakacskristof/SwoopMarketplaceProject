@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="Pages\ListingImages\" />
-    <Folder Include="Pages\Reports\" />
   </ItemGroup>
 
   <ItemGroup>
