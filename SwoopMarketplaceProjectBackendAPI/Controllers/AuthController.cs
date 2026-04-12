@@ -51,8 +51,8 @@ public class AuthController : ControllerBase
                 CreatedAt = DateTime.UtcNow,
                 Bio = "",
                 Phone = req.Phone,
-                ProfileImageUrl = ""
-                
+                ProfileImageUrl = "https://localhost:7000/images/profilepictures/defaultprofilepicture.png"
+
             };
 
             await _sdbc.Users.AddAsync(newUser);
