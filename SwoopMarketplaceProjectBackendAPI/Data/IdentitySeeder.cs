@@ -9,7 +9,7 @@ public static class IdentitySeeder
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         // 1) Szerepkörök
-        string[] roles = ["Admin", "User"];
+        string[] roles = ["Admin", "User","Owner"];
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -38,11 +38,48 @@ public static class IdentitySeeder
                     throw new Exception("Admin user létrehozása sikertelen: " + msg);
                 }
             }
+
+
+
             // Admin szerepkör biztosítása
             if (!await userManager.IsInRoleAsync(admin, "Admin"))
             {
                 await userManager.AddToRoleAsync(admin, "Admin");
             }
         }
+
+        var ownerEmail = cfg["SeedOwner:Email"];
+        var ownerPassword = cfg["SeedOwner:Password"];
+        if (!string.IsNullOrWhiteSpace(ownerEmail) && !string.IsNullOrWhiteSpace(ownerPassword))
+        {
+            var owner = await userManager.FindByEmailAsync(ownerEmail);
+            if (owner is null)
+            {
+                owner = new IdentityUser
+                {
+                    UserName = ownerEmail,
+                    Email = ownerEmail,
+                    EmailConfirmed = true
+                };
+                var createResult = await userManager.CreateAsync(owner, ownerPassword);
+                if (!createResult.Succeeded)
+                {
+                    var msg = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                    throw new Exception("Owner user létrehozása sikertelen: " + msg);
+                }
+            }
+
+
+
+            // Admin szerepkör biztosítása
+            if (!await userManager.IsInRoleAsync(owner, "Owner"))
+            {
+                await userManager.AddToRoleAsync(owner, "Owner");
+            }
+        }
+
+
+
+
     }
 }
