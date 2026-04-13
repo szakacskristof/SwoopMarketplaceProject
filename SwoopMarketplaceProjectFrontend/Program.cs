@@ -28,6 +28,9 @@ namespace SwoopMarketplaceProjectFrontend
             builder.Services.AddScoped<UserApi>();
             builder.Services.AddScoped<ReportApi>();
 
+            // Register bookmark service so PageModels that depend on it can be activated.
+            builder.Services.AddScoped<BookmarkApi>();
+
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {

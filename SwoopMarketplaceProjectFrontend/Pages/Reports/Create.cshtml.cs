@@ -97,9 +97,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
 
             var report = new ReportDto
             {
-                ListingId = (int)ListingId,
-                UserId = (int)userId.Value,
-                Description = Input.Description.Trim()
+                ListingId = ListingId,
+                UserId = userId.Value,
+                Description = Input.Description
             };
 
             await _reportApi.CreateAsync(report);

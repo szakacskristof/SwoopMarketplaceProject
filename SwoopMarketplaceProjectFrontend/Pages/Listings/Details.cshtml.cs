@@ -10,23 +10,23 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         private readonly ListingApi _api;
         private readonly UserApi _userApi;
         private readonly AuthSession _auth;
-        public DetailsModel(ListingApi api, UserApi userApi, AuthSession auth)
+        private readonly BookmarkApi _bookmarkApi;
+
+        public DetailsModel(ListingApi api, UserApi userApi, AuthSession auth, BookmarkApi bookmarkApi)
         {
             _api = api;
             _userApi = userApi;
             _auth = auth;
+            _bookmarkApi = bookmarkApi;
         }
         public ListingDto? Listing { get; private set; }
         public string? OwnerEmail { get; private set; }
-
-        // New: optional owner profile image URL
         public string? OwnerProfileImageUrl { get; private set; }
-
-        // show/hide controls separately so behavior matches Index:
-        // - Edit: only owner
-        // - Delete: owner OR Admin
         public bool CanEdit { get; private set; }
         public bool CanDelete { get; private set; }
+
+        // frontend-only: whether current user bookmarked this listing
+        public bool IsBookmarked { get; private set; }
 
         public async Task<IActionResult> OnGetAsync(int azon)
         {
@@ -42,13 +42,40 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             var currentEmail = _auth.GetEmail();
             var isAdmin = _auth.IsInRole("Admin");
 
-            // owner may edit; admin should not be allowed to edit (keep consistent with Index)
             CanEdit = !string.IsNullOrWhiteSpace(currentEmail) && string.Equals(currentEmail, OwnerEmail, StringComparison.OrdinalIgnoreCase);
-
-            // delete allowed for owner or admin
             CanDelete = isAdmin || CanEdit;
 
+            if (_auth.IsSignedIn)
+            {
+                try
+                {
+                    var ids = await _bookmarkApi.GetForCurrentUserAsync();
+                    IsBookmarked = ids.Contains(Listing.Id);
+                }
+                catch { IsBookmarked = false; }
+            }
+
             return Page();
+        }
+
+        public async Task<IActionResult> OnPostToggleBookmarkAsync(int azon)
+        {
+            if (!_auth.IsSignedIn)
+            {
+                return RedirectToPage("/Account/Login", new { returnUrl = Url.Page("/Listings/Details", new { azon }) });
+            }
+
+            try
+            {
+                var ids = await _bookmarkApi.GetForCurrentUserAsync();
+                if (ids.Contains(azon))
+                    await _bookmarkApi.RemoveAsync(azon);
+                else
+                    await _bookmarkApi.AddAsync(azon);
+            }
+            catch { }
+
+            return RedirectToPage(new { azon });
         }
     }
 }

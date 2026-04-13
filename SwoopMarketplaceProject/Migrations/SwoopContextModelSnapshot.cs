@@ -24,6 +24,28 @@ namespace SwoopMarketplaceProject.Migrations
             MySqlModelBuilderExtensions.HasCharSet(modelBuilder, "utf8mb4");
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("SwoopMarketplaceProject.Models.Bookmark", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("ListingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Bookmarks");
+                });
+
             modelBuilder.Entity("SwoopMarketplaceProject.Models.Category", b =>
                 {
                     b.Property<long>("Id")
@@ -188,20 +210,20 @@ namespace SwoopMarketplaceProject.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<int>("ListingId")
-                        .HasColumnType("int(11)")
+                    b.Property<long>("ListingId")
+                        .HasColumnType("bigint(20)")
                         .HasColumnName("listingId");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int(11)")
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint(20)")
                         .HasColumnName("userId");
 
                     b.HasKey("ReportId")
                         .HasName("PRIMARY");
 
-                    b.HasIndex("ListingId");
+                    b.HasIndex(new[] { "ListingId" }, "IX_reports_listingId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex(new[] { "UserId" }, "IX_reports_userId");
 
                     b.ToTable("reports", (string)null);
                 });
@@ -309,13 +331,15 @@ namespace SwoopMarketplaceProject.Migrations
                         .WithMany()
                         .HasForeignKey("ListingId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_reports_listings_listingId");
 
                     b.HasOne("SwoopMarketplaceProject.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .IsRequired()
+                        .HasConstraintName("FK_reports_users_userId");
 
                     b.Navigation("Listing");
 

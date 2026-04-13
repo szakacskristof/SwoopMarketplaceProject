@@ -29,7 +29,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
         // GET: api/Reports/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Report>> GetReport(int id)
+        public async Task<ActionResult<Report>> GetReport(long id)
         {
             var report = await _context.Reports.FindAsync(id);
 
@@ -44,7 +44,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         // PUT: api/Reports/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutReport(int id, Report report)
+        public async Task<IActionResult> PutReport(long id, Report report)
         {
             if (id != report.ReportId)
             {
@@ -85,7 +85,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
         // DELETE: api/Reports/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReport(int id)
+        public async Task<IActionResult> DeleteReport(long id)
         {
             var report = await _context.Reports.FindAsync(id);
             if (report == null)
@@ -99,7 +99,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
-        private bool ReportExists(int id)
+        private bool ReportExists(long id)
         {
             return _context.Reports.Any(e => e.ReportId == id);
         }

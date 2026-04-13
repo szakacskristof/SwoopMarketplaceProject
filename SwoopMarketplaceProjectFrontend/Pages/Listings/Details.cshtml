@@ -31,8 +31,10 @@ else
     // Prefer stored profile image when available; fallback to gravatar
     var avatar = !string.IsNullOrWhiteSpace(Model.OwnerProfileImageUrl) ? Model.OwnerProfileImageUrl : GravatarUrl(Model.OwnerEmail);
 
-    // safe fallback list
-    var images = (l.ImageUrls ?? new List<string>()).Any() ? l.ImageUrls : new List<string> { "/images/placeholder.png" };
+    // safe fallback list - avoid nullable dereference by materializing a non-null local
+    var imageList = l.ImageUrls ?? new List<string>();
+    var images = imageList.Any() ? imageList : new List<string> { "/images/placeholder.png" };
+
     <div style="max-width:1100px;margin:18px auto;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
         <!-- Left / gallery (Bootstrap carousel with thumbnails) -->
         <section style="flex:1 1 640px;min-width:320px;">
@@ -140,6 +142,34 @@ else
             </div>
         </aside>
     </div>
+
+    @* Add a small bookmark toggle near the listing title or controls *@
+    @if (Model.Listing != null)
+    {
+        <div style="display:flex;align-items:center;gap:8px;">
+            <h1 style="margin:0">@Model.Listing.Title</h1>
+
+            <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
+                <input type="hidden" name="azon" value="@Model.Listing.Id" />
+                <button type="submit" title="Toggle bookmark" style="background:none;border:none;padding:6px;cursor:pointer;">
+                    @if (Model.IsBookmarked)
+                    {
+                        <!-- filled bookmark (bookmarked) -->
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z"/>
+                        </svg>
+                    }
+                    else
+                    {
+                        <!-- outline bookmark (not bookmarked) -->
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
+                        </svg>
+                    }
+                </button>
+            </form>
+        </div>
+    }
 
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />

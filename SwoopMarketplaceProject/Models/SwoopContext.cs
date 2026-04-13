@@ -29,7 +29,7 @@ public partial class SwoopContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("server=localhost;user=root;database=swoop;password=;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
+        => optionsBuilder.UseMySql("server=localhost;user=root;database=swoop;password=root;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -173,12 +173,29 @@ public partial class SwoopContext : DbContext
             entity.Property(e => e.Description)
                 .HasColumnType("text")
                 .HasColumnName("description");
+
+            // Match listings.id and users.id which are bigint(20)
             entity.Property(e => e.ListingId)
-                .HasColumnType("int(11)")
+                .HasColumnType("bigint(20)")
                 .HasColumnName("listingId");
             entity.Property(e => e.UserId)
-                .HasColumnType("int(11)")
+                .HasColumnType("bigint(20)")
                 .HasColumnName("userId");
+
+            entity.HasIndex(e => e.ListingId, "IX_reports_listingId");
+            entity.HasIndex(e => e.UserId, "IX_reports_userId");
+
+            entity.HasOne(d => d.Listing)
+                .WithMany() // or .WithMany(p => p.Reports) if you add a Reports collection on Listing
+                .HasForeignKey(d => d.ListingId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_reports_listings_listingId");
+
+            entity.HasOne(d => d.User)
+                .WithMany() // or .WithMany(u => u.Reports) if you add a Reports collection on User
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_reports_users_userId");
         });
 
         modelBuilder.Entity<User>(entity =>

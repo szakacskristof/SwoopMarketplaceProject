@@ -31,20 +31,26 @@
 <div style="padding:8px 12px;max-width:1200px;margin:0 auto;">
     <h1 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Swoop</h1>
 
-    @* Category selector (GET form so filter is bookmarkable) *@
-    <form method="get" style="margin-bottom:12px;display:flex;gap:8px;align-items:center;">
-        <label class="form-label" style="margin:0 8px 0 0;font-weight:700">Szűrés kategória alapján:</label>
-        <select name="CategoryId" onchange="this.form.submit()" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;">
-            <option value="">Minden kategória</option>
-            @foreach (var c in Model.Categories)
-            {
-                <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
-            }
-        </select>
-        <noscript>
-            <button type="submit" class="btn btn-sm btn-primary ms-2">Apply</button>
-        </noscript>
-    </form>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <form method="get" style="display:flex;gap:8px;align-items:center;">
+            <label class="form-label" style="margin:0 8px 0 0;font-weight:700">Szűrés kategória alapján:</label>
+            <select name="CategoryId" onchange="this.form.submit()" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;">
+                <option value="">Minden kategória</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                }
+            </select>
+            <noscript>
+                <button type="submit" class="btn btn-sm btn-primary ms-2">Apply</button>
+            </noscript>
+        </form>
+
+        <div style="margin-left:auto;display:flex;gap:8px;">
+            <a asp-page="./Index" asp-route-Saved="false" class="btn btn-sm" style="@(Model.Saved ? "opacity:0.6" : "background:#eef2ff;color:#4c51bf")">All</a>
+            <a asp-page="./Index" asp-route-Saved="true" class="btn btn-sm" style="@(Model.Saved ? "background:#eef2ff;color:#4c51bf" : "opacity:0.6")">Saved</a>
+        </div>
+    </div>
 
     @if (!string.IsNullOrEmpty(Model.Error))
     {
@@ -79,6 +85,29 @@
                             </a>
                             <div style="font-size:13px;color:#6b7280;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
                         </div>
+
+                        @* bookmark toggle form (keeps CategoryId and Saved when posting) *@
+                        <div>
+                            <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
+                                <input type="hidden" name="azon" value="@n.Id" />
+                                <input type="hidden" name="CategoryId" value="@(Model.CategoryId ?? 0)" />
+                                <input type="hidden" name="Saved" value="@(Model.Saved ? "true" : "false")" />
+                                <button type="submit" title="Toggle bookmark" style="background:none;border:none;padding:6px;cursor:pointer;">
+                                    @if (item.IsBookmarked)
+                                    {
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z"/>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
+                                        </svg>
+                                    }
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     <div style="color:#333;font-size:14px;line-height:1.35;">@Truncate(n.Description, 140)</div>
@@ -98,7 +127,7 @@
                             <a asp-page="./Details" asp-route-azon="@n.Id" class="btn btn-sm" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View</a>
 
                             <div>
-                                @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
+                            @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
                                 {
                                     @* inline delete form with JS confirmation - posts to the Index page's Delete handler *@
                                     <form method="post" asp-page-handler="Delete" style="display:inline" onsubmit="return confirm('Biztosan törölni szeretnéd a hírdetést?');">

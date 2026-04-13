@@ -1,0 +1,91 @@
+﻿@page
+@model SwoopMarketplaceProjectFrontend.Pages.Listings.SavedModel
+@using System.Security.Cryptography
+@using System.Text
+@using SwoopMarketplaceProjectFrontend.Services
+@inject AuthSession AuthSession
+
+@functions {
+    private static string GravatarUrl(string? email, int size = 64)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return $"/images/avatar.png";
+        using var md5 = MD5.Create();
+        var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+        return $"https://www.gravatar.com/avatar/{hash}?s={size}&d=identicon";
+    }
+
+    private static string Truncate(string? text, int len = 120)
+    {
+        if (string.IsNullOrEmpty(text)) return string.Empty;
+        return text.Length <= len ? text : text.Substring(0, len).TrimEnd() + "…";
+    }
+}
+
+<div style="padding:8px 12px;max-width:1200px;margin:0 auto;">
+    <h1 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Saved listings</h1>
+
+    @if (!AuthSession.IsSignedIn)
+    {
+        <div class="alert alert-info">Please sign in to view your saved listings.</div>
+    }
+    else if (Model.ListingsWithOwners.Count == 0)
+    {
+        <div class="alert alert-secondary">You have no saved listings.</div>
+    }
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start;">
+        @foreach (var item in Model.ListingsWithOwners)
+        {
+            var n = item.Listing;
+            var imageUrl = (n.ImageUrls != null && n.ImageUrls.Count > 0)
+                ? n.ImageUrls[0]
+                : "/images/placeholder.png";
+            var avatar = !string.IsNullOrWhiteSpace(item.OwnerProfileImageUrl) ? item.OwnerProfileImageUrl : GravatarUrl(item.OwnerEmail);
+            <div style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
+                <div style="height:180px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');"></div>
+
+                <div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;">
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+                        <div style="flex:1;">
+                            <a asp-page="./Details" asp-route-azon="@n.Id" style="text-decoration:none;color:inherit;">
+                                <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@n.Title - @n.Price.ToString("C")</div>
+                            </a>
+                            <div style="font-size:13px;color:#6b7280;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
+                        </div>
+
+                        <div>
+                            <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
+                                <input type="hidden" name="azon" value="@n.Id" />
+                                <button type="submit" title="Toggle bookmark" style="background:none;border:none;padding:6px;cursor:pointer;">
+                                    <!-- saved page always treats listed items as bookmarked by default (but toggling still works) -->
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                        <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div style="color:#333;font-size:14px;line-height:1.35;">@Truncate(n.Description, 140)</div>
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
+                        <div style="display:flex;align-items:center;gap:10px">
+                            <div style="width:44px;height:44px;border-radius:999px;overflow:hidden;border:2px solid #fff;box-shadow:0 6px 14px rgba(9,20,40,0.06);">
+                                <img src="@avatar" alt="seller" style="width:100%;height:100%;object-fit:cover;display:block" />
+                            </div>
+                            <div>
+                                <div style="font-weight:600;font-size:13px;">@((item.OwnerEmail?.Split('@').FirstOrDefault()) )</div>
+                                <div style="font-size:12px;color:#6b7280;">@ConditionMapper.FriendlyName(n.Condition)</div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
+                            <a asp-page="./Details" asp-route-azon="@n.Id" class="btn btn-sm" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
