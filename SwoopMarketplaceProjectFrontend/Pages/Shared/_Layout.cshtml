@@ -92,9 +92,39 @@
                         }
                         else
                         {
+                            // Prefer username: try lookup by user id (GetUserId), fallback to lookup by email, otherwise show email
+                            string displayName = AuthSession.GetEmail() ?? "";
+                            try
+                            {
+                                var userId = AuthSession.GetUserId();
+                                if (userId.HasValue)
+                                {
+                                    var u = await UserApi.GetByAzonAsync(userId.Value);
+                                    if (u != null && !string.IsNullOrWhiteSpace(u.Username))
+                                    {
+                                        displayName = u.Username;
+                                    }
+                                }
+                                else
+                                {
+                                    var email = AuthSession.GetEmail();
+                                    if (!string.IsNullOrWhiteSpace(email))
+                                    {
+                                        var u = await UserApi.GetByEmailAsync(email);
+                                        if (u != null && !string.IsNullOrWhiteSpace(u.Username))
+                                        {
+                                            displayName = u.Username;
+                                        }
+                                    }
+                                }
+                            }
+                            catch
+                            {
+                                // ignore failures and fall back to email
+                            }
                             <li class="nav-item">
                                 <span class="nav-link text-success">
-                                    @AuthSession.GetEmail()
+                                    @displayName
                                     @if (AuthSession.IsInRole("Admin"))
                                     {
                                         <span class="badge bg-danger ms-2">Admin</span>
