@@ -7,7 +7,7 @@ public static class IdentitySeeder
     public static async Task SeedAsync(IServiceProvider services, IConfiguration cfg)
     {
         using var scope = services.CreateScope();
-        SwoopContext _sdbc=new SwoopContext();
+        SwoopContext _sdbc = new SwoopContext();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         // 1) Szerepkörök
@@ -44,6 +44,7 @@ public static class IdentitySeeder
 
 
                     Email = adminEmail,
+                    Id = 2,
                     Username = "SwoopAdmin1",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "SwoopMarketplace Admin felhasználója",
@@ -85,17 +86,18 @@ public static class IdentitySeeder
                     var msg = string.Join("; ", createResult.Errors.Select(e => e.Description));
                     throw new Exception("Owner user létrehozása sikertelen: " + msg);
                 }
-               
+
 
                 User newUser = new User()
                 {
 
 
                     Email = ownerEmail,
+                    Id = 1,
                     Username = "SwoopOwner",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "SwoopMarketplace tulajdonosa",
-                    Phone ="Tulajdonos,telefonszámt titkosítva",
+                    Phone = "Tulajdonos,telefonszámt titkosítva",
                     ProfileImageUrl = "https://localhost:7000/images/profilepictures/ownerpfp.png"
 
                 };
@@ -141,6 +143,7 @@ public static class IdentitySeeder
 
 
                     Email = user1Email,
+                    Id = 3,
                     Username = "Belavagyok",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "Üdv! Nagy Béla vagyok!",
@@ -151,6 +154,7 @@ public static class IdentitySeeder
 
                 await _sdbc.Users.AddAsync(newUser1);
                 await _sdbc.SaveChangesAsync();
+
             }
 
 
@@ -190,6 +194,7 @@ public static class IdentitySeeder
 
 
                     Email = user2Email,
+                    Id = 4,
                     Username = "Gyulavagyok",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "Üdv! Kis Gyula vagyok!",
@@ -199,6 +204,7 @@ public static class IdentitySeeder
                 };
                 await _sdbc.Users.AddAsync(newUser2);
                 await _sdbc.SaveChangesAsync();
+
             }
 
             if (!await userManager.IsInRoleAsync(user2, "User"))
@@ -231,6 +237,7 @@ public static class IdentitySeeder
 
 
                     Email = user3Email,
+                    Id = 5,
                     Username = "Magyar Kata",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "Üdv! Magyar Kata vagyok!",
@@ -240,6 +247,7 @@ public static class IdentitySeeder
                 };
                 await _sdbc.Users.AddAsync(newUser3);
                 await _sdbc.SaveChangesAsync();
+
             }
 
             if (!await userManager.IsInRoleAsync(user3, "User"))
@@ -272,6 +280,7 @@ public static class IdentitySeeder
 
 
                     Email = user4Email,
+                    Id = 6,
                     Username = "Földes Mária",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "Üdv! Földes Mária vagyok!",
@@ -281,6 +290,7 @@ public static class IdentitySeeder
                 };
                 await _sdbc.Users.AddAsync(newUser4);
                 await _sdbc.SaveChangesAsync();
+
 
             }
 
@@ -314,6 +324,8 @@ public static class IdentitySeeder
 
 
                     Email = user5Email,
+
+                    Id = 7,
                     Username = "Tejfölös Ferenc",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "Üdv! Tejfölös Ferenc vagyok!",
@@ -321,8 +333,10 @@ public static class IdentitySeeder
                     ProfileImageUrl = "https://localhost:7000/images/profilepictures/defaultprofilepicture.png"
 
                 };
+
                 await _sdbc.Users.AddAsync(newUser5);
                 await _sdbc.SaveChangesAsync();
+
             }
 
             if (!await userManager.IsInRoleAsync(user5, "User"))
@@ -330,5 +344,6 @@ public static class IdentitySeeder
                 await userManager.AddToRoleAsync(user5, "User");
             }
         }
+
     }
 }

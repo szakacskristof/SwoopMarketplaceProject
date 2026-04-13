@@ -6,11 +6,12 @@ namespace SwoopMarketplaceProjectFrontend.Services
     {
         private static readonly IReadOnlyDictionary<string, string> Map = new Dictionary<string, string>
         {
-            ["fn"] = "Gyári új",
-            ["mw"] = "Kevéssé használt",
-            ["ft"] = "Harctéren tesztelt",
-            ["ww"] = "Viseltes",
-            ["bs"] = "Háború tépázta"
+            ["Új"] = "Új",
+            ["Kiváló"] = "Kiváló",
+            ["Kielégítõ"] = "Kielégítõ",
+            ["Használt"] = "Használt",
+            ["Hibás"] = "Hibás"
+
         };
 
         public static string FriendlyName(string? code)

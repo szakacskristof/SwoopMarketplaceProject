@@ -29,7 +29,7 @@ public partial class SwoopContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseMySql("server=localhost;user=root;database=swoop;password=root;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
+        => optionsBuilder.UseMySql("server=localhost;user=root;database=swoop;password=;", Microsoft.EntityFrameworkCore.ServerVersion.Parse("10.4.32-mariadb"));
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -70,7 +70,7 @@ public partial class SwoopContext : DbContext
                 .HasColumnType("bigint(20)")
                 .HasColumnName("category_id");
             entity.Property(e => e.Condition)
-                .HasColumnType("enum('fn','mw','ft','ww','bs')")
+                .HasColumnType("enum('Új','Kiváló','Kielégítő','Használt','Hibás')")
                 .HasColumnName("condition");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("current_timestamp()")

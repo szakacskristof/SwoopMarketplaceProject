@@ -108,6 +108,9 @@ namespace SwoopMarketplaceProjectBackendAPI
             app.MapControllers();
 
             await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
+            await CategorySeeder.SeedAsync();
+            await ListingSeeder.SeedAsync();
+            await ImageSeeder.SeedAsync();
 
             app.Run();
         }

@@ -46,10 +46,7 @@
             </noscript>
         </form>
 
-        <div style="margin-left:auto;display:flex;gap:8px;">
-            <a asp-page="./Index" asp-route-Saved="false" class="btn btn-sm" style="@(Model.Saved ? "opacity:0.6" : "background:#eef2ff;color:#4c51bf")">All</a>
-            <a asp-page="./Index" asp-route-Saved="true" class="btn btn-sm" style="@(Model.Saved ? "background:#eef2ff;color:#4c51bf" : "opacity:0.6")">Saved</a>
-        </div>
+      
     </div>
 
     @if (!string.IsNullOrEmpty(Model.Error))
@@ -81,7 +78,8 @@
                     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
                         <div style="flex:1;">
                             <a asp-page="./Details" asp-route-azon="@n.Id" style="text-decoration:none;color:inherit;">
-                                <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@n.Title - @n.Price.ToString().Split(',')[0] Ft</div>
+                                <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@n.Title</div>
+                                <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@n.Price.ToString().Split(',')[0] Ft</div>
                             </a>
                             <div style="font-size:13px;color:#6b7280;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
                         </div>
@@ -90,8 +88,7 @@
                         <div>
                             <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
                                 <input type="hidden" name="azon" value="@n.Id" />
-                                <input type="hidden" name="CategoryId" value="@(Model.CategoryId ?? 0)" />
-                                <input type="hidden" name="Saved" value="@(Model.Saved ? "true" : "false")" />
+                           
                                 <button type="submit" title="Toggle bookmark" style="background:none;border:none;padding:6px;cursor:pointer;">
                                     @if (item.IsBookmarked)
                                     {
@@ -110,7 +107,7 @@
                         </div>
                     </div>
 
-                    <div style="color:#333;font-size:14px;line-height:1.35;">@Truncate(n.Description, 140)</div>
+                    
 
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
                         <div style="display:flex;align-items:center;gap:10px">
@@ -124,7 +121,7 @@
                         </div>
 
                         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                            <a asp-page="./Details" asp-route-azon="@n.Id" class="btn btn-sm" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">View</a>
+                            <a asp-page="./Details" asp-route-azon="@n.Id" class="btn btn-sm" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">Megtekintés</a>
 
                             <div>
                             @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))

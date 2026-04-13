@@ -43,7 +43,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             [Required(ErrorMessage = "Kérlek válassz kategóriát!")]
             public long? CategoryId { get; set; }
 
-            public string Condition { get; set; } = "használt";
+            public string Condition { get; set; } = "Használt";
 
             public string? Location { get; set; }
 

@@ -31,7 +31,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
                 _session.SetToken(token);   
                 if (!string.IsNullOrWhiteSpace(ReturnUrl))
                     return Redirect(ReturnUrl);
-                return RedirectToPage("/Index");
+                return RedirectToPage("/Listings/Index");
             }
             catch (Exception ex)
             {

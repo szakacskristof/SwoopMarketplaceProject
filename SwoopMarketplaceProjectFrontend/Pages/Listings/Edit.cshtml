@@ -91,11 +91,11 @@ else
 
         <label class="form-label">Állapot:</label>
         <select asp-for="Input.Condition" class="form-control mb-2">
-            <option value="fn" selected="@(Model.Input.Condition == "new" ? "selected" : null)">Gyári új</option>
-            <option value="mw" selected="@(Model.Input.Condition == "mw" ? "selected" : null)">Kevéssé használt</option>
-            <option value="ft" selected="@(Model.Input.Condition == "ft" ? "selected" : null)">Harctéren tesztelt</option>
-            <option value="ww" selected="@(Model.Input.Condition == "ww" ? "selected" : null)">Viseltes</option>
-            <option value="bs" selected="@(Model.Input.Condition == "bs" ? "selected" : null)">Háború tépázta</option>
+            <option value="Új" selected="@(Model.Input.Condition == "Új" ? "selected" : null)">Új</option>
+            <option value="Kiváló" selected="@(Model.Input.Condition == "Kiváló" ? "selected" : null)">Kiváló</option>
+            <option value="Kielégítő" selected="@(Model.Input.Condition == "Kielégítő" ? "selected" : null)">Kielégítő</option>
+            <option value="Használt" selected="@(Model.Input.Condition == "Használt" ? "selected" : null)">Használt</option>
+            <option value="Hibás" selected="@(Model.Input.Condition == "Hibás" ? "selected" : null)">Hibás</option>
         </select>
 
         <label class="form-label">Helyszín:</label>
