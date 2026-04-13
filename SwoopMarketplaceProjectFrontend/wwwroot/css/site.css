@@ -20,3 +20,50 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Saved/Index visual parity: add to bottom of site.css */
+
+div[style*="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));"] {
+  /* make each grid item take equal height */
+  grid-auto-rows: 1fr !important;
+  align-items: stretch !important;
+}
+
+div[style*="background:#fff;border-radius:12px"] {
+  /* ensure card stretches to the grid row */
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+div[style*="height:180px;background:#f4f6fb"] {
+  /* keep image area fixed and cover properly */
+  flex: 0 0 180px !important;
+  background-size: cover !important;
+  background-position: center !important;
+  min-height: 180px !important;
+}
+
+div[style*="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;"] {
+  /* make body grow and push actions to the bottom */
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* small visual polish for saved page buttons and avatar spacing */
+div[style*="max-width:1200px"] .btn.btn-sm,
+div[style*="max-width:1200px"] a.btn.btn-sm {
+  background: #eef2ff !important;
+  color: #4c51bf !important;
+  padding: 6px 10px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;  
+  font-size: 13px !important;
+}
+
+img[alt="seller"] {
+  object-fit: cover !important;
+}
+
+

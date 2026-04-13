@@ -2,124 +2,484 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Listings.EditModel
 @inject SwoopMarketplaceProjectFrontend.Services.AuthSession AuthSession;
 
-<h1>Hírdetés módosítása</h1>
+<style>
+    .swoop-form-wrap {
+        max-width: 680px;
+        padding: 2rem 0;
+        margin: 0 auto;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    }
 
-@if (!string.IsNullOrEmpty(Model.Error))
-{
-    <div class="alert alert-danger">@Model.Error</div>
-}
+        .swoop-form-wrap h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 1.75rem;
+        }
 
-@if (!string.IsNullOrEmpty(Model.Message))
-{
-    <div class="alert alert-success">@Model.Message</div>
-}
+    .swoop-alert {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 14px;
+        margin-bottom: 1rem;
+    }
 
-@if (Model.Input is null)
-{
-    <div class="alert alert-warning">Hírdetés nem található.</div>
-}
-else
-{
-    @* Existing images (radio selector placed here but radios are outside main form).
-       We will copy the selected radio value into the hidden input inside the main form on submit. *@
-    <label class="form-label">Feltöltött képek</label>
-    <div class="mb-3">
-        @if (Model.ExistingImages != null && Model.ExistingImages.Any())
-        {
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var img in Model.ExistingImages)
-                {
-                    <div style="width:120px;position:relative">
-                        <img src="@img.ImageUrl" alt="img" style="max-width:100%;border-radius:6px" />
-                        <div style="position:absolute;left:6px;bottom:6px;">
-                            <input type="radio" name="primarySelector" id="prim_@img.Id" value="@img.Id" @(img.IsPrimary == true ? "checked" : "") />
-                            <label for="prim_@img.Id" class="small text-white" style="background:#00000055;padding:2px 6px;border-radius:6px;color:#fff;font-size:12px">Megjelenő kép</label>
+    .swoop-alert-danger {
+        background: #fef2f2;
+        color: #b91c1c;
+        border: 1px solid #fecaca;
+    }
+
+    .swoop-alert-success {
+        background: #f0fdf4;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+    }
+
+    .swoop-alert-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .swoop-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 16px;
+    }
+
+    .swoop-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 1.25rem;
+    }
+
+        .swoop-field.full {
+            grid-column: 1 / -1;
+        }
+
+        .swoop-field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            letter-spacing: .02em;
+        }
+
+        .swoop-field input,
+        .swoop-field select,
+        .swoop-field textarea {
+            width: 100%;
+            padding: 9px 12px;
+            font-size: 15px;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #222;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+            box-sizing: border-box;
+        }
+
+            .swoop-field input:focus,
+            .swoop-field select:focus,
+            .swoop-field textarea:focus {
+                border-color: #7F77DD;
+                box-shadow: 0 0 0 3px rgba(127, 119, 221, 0.12);
+            }
+
+        .swoop-field textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+
+    .swoop-condition-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+    }
+
+    .swoop-cond-opt {
+        position: relative;
+    }
+
+        .swoop-cond-opt input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .swoop-cond-opt label {
+            display: block;
+            text-align: center;
+            padding: 7px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #666;
+            background: #fff;
+            transition: all .15s;
+            letter-spacing: 0;
+        }
+
+        .swoop-cond-opt input[type="radio"]:checked + label {
+            border-color: #7F77DD;
+            background: #EEEDFE;
+            color: #534AB7;
+        }
+
+    /* Existing images section */
+    .swoop-images-section {
+        margin-bottom: 1.5rem;
+    }
+
+        .swoop-images-section > label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            letter-spacing: .02em;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+    .swoop-images-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .swoop-img-wrap {
+        position: relative;
+        width: 100px;
+    }
+
+        .swoop-img-wrap img {
+            width: 100%;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            display: block;
+        }
+
+    .swoop-primary-radio {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .swoop-primary-badge {
+        position: absolute;
+        bottom: 5px;
+        left: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(127, 119, 221, 0.85);
+        color: #fff;
+        cursor: pointer;
+        user-select: none;
+        transition: background .15s;
+    }
+
+    .swoop-primary-radio:checked ~ .swoop-primary-badge {
+        background: #534AB7;
+    }
+
+    .swoop-delete-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 22px;
+        height: 22px;
+        background: rgba(185, 28, 28, 0.85);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: background .15s;
+    }
+
+        .swoop-delete-btn:hover {
+            background: #991b1b;
+        }
+
+    .swoop-no-images {
+        font-size: 13px;
+        color: #999;
+        padding: 12px;
+        background: #f9f9fb;
+        border-radius: 8px;
+        border: 1px dashed #e0e0e0;
+    }
+
+    .swoop-upload-zone {
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        background: #f9f9fb;
+        cursor: pointer;
+        transition: border-color .15s;
+    }
+
+        .swoop-upload-zone:hover {
+            border-color: #7F77DD;
+        }
+
+    .swoop-upload-icon {
+        width: 32px;
+        height: 32px;
+        margin: 0 auto 8px;
+        opacity: .4;
+        display: block;
+    }
+
+    .swoop-upload-label {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .swoop-upload-sub {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    #swoopEditFileInput {
+        display: none;
+    }
+
+    .swoop-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: .5rem;
+    }
+
+    .swoop-btn-primary {
+        padding: 10px;
+        background: #6c5ce7;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        transition: background .15s;
+    }
+
+        .swoop-btn-primary:hover {
+            background: #534AB7;
+        }
+
+    .swoop-btn-secondary {
+        padding: 10px;
+        background: #f0f0f5;
+        color: #444;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        display: block;
+        transition: background .15s;
+    }
+
+        .swoop-btn-secondary:hover {
+            background: #e5e5f0;
+        }
+
+    .swoop-validation-summary {
+        color: #b91c1c;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .swoop-validation-msg {
+        color: #b91c1c;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+</style>
+
+<div class="swoop-form-wrap">
+    <h1>Hirdetés módosítása</h1>
+
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <div class="swoop-alert swoop-alert-danger">@Model.Error</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="swoop-alert swoop-alert-success">@Model.Message</div>
+    }
+
+    @if (Model.Input is null)
+    {
+        <div class="swoop-alert swoop-alert-warning">Hirdetés nem található.</div>
+    }
+    else
+    {
+        <div class="swoop-images-section">
+            <label>Feltöltött képek</label>
+
+            @if (Model.ExistingImages != null && Model.ExistingImages.Any())
+            {
+                <div class="swoop-images-grid">
+                    @foreach (var img in Model.ExistingImages)
+                    {
+                        <div class="swoop-img-wrap">
+                            <img src="@img.ImageUrl" alt="img" />
+                            <input class="swoop-primary-radio"
+                                   type="radio"
+                                   name="primarySelector"
+                                   id="prim_@img.Id"
+                                   value="@img.Id"
+                                   @(img.IsPrimary == true ? "checked" : "") />
+                            <label for="prim_@img.Id" class="swoop-primary-badge">
+                                @(img.IsPrimary == true ? "Fő kép" : "Beállítás")
+                            </label>
+                            @if (img.Id > 0)
+                            {
+                                <form method="post" asp-page-handler="DeleteImage">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@img.Id" />
+                                    <input type="hidden" name="listingId" value="@Model.Input.Id" />
+                                    <button type="submit"
+                                            class="swoop-delete-btn"
+                                            onclick="return confirm('Biztosan törlöd a képet?');">
+                                        ×
+                                    </button>
+                                </form>
+                            }
                         </div>
-                        @if (img.Id > 0)
+                    }
+                </div>
+            }
+            else if (Model.Input.ImageUrls != null && Model.Input.ImageUrls.Any())
+            {
+                <div class="swoop-images-grid">
+                    @foreach (var url in Model.Input.ImageUrls)
+                    {
+                        <div class="swoop-img-wrap">
+                            <img src="@url" alt="img" />
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="swoop-no-images">Nincsenek feltöltött képek.</div>
+            }
+        </div>
+
+        <form method="post" enctype="multipart/form-data" id="editForm">
+            <input asp-for="Input.Id" type="hidden" />
+            <input type="hidden" name="primaryImageId" value="" />
+
+            <div asp-validation-summary="ModelOnly" class="swoop-validation-summary"></div>
+
+            <div class="swoop-form-grid">
+
+                <div class="swoop-field full">
+                    <label asp-for="Input.Title">Cím</label>
+                    <input asp-for="Input.Title" />
+                    <span asp-validation-for="Input.Title" class="swoop-validation-msg"></span>
+                </div>
+
+                <div class="swoop-field">
+                    <label asp-for="Input.Price">Ár (HUF)</label>
+                    <input asp-for="Input.Price" type="number" step="0.01" />
+                    <span asp-validation-for="Input.Price" class="swoop-validation-msg"></span>
+                </div>
+
+                <div class="swoop-field">
+                    <label asp-for="Input.Location">Helyszín</label>
+                    <input asp-for="Input.Location" />
+                    <span asp-validation-for="Input.Location" class="swoop-validation-msg"></span>
+                </div>
+
+                <div class="swoop-field full">
+                    <label asp-for="Input.CategoryId">Kategória</label>
+                    <select asp-for="Input.CategoryId">
+                        <option value="">-- Válassz kategóriát --</option>
+                        @foreach (var c in Model.Categories)
                         {
-                            <form method="post" asp-page-handler="DeleteImage" style="position:absolute;top:6px;right:6px;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@img.Id" />
-                                <input type="hidden" name="listingId" value="@Model.Input.Id" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Biztosan törlöd a képet?');">×</button>
-                            </form>
+                            <option value="@c.Id" selected="@(Model.Input.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Input.CategoryId" class="swoop-validation-msg"></span>
+                </div>
+
+                <div class="swoop-field full">
+                    <label>Állapot</label>
+                    <div class="swoop-condition-grid">
+                        @foreach (var cond in new[] { "Új", "Kiváló", "Kielégítő", "Használt", "Hibás" })
+                        {
+                            <div class="swoop-cond-opt">
+                                <input type="radio"
+                                       asp-for="Input.Condition"
+                                       value="@cond"
+                                       id="cond_@cond" />
+                                <label for="cond_@cond">@cond</label>
+                            </div>
                         }
                     </div>
-                }
-            </div>
-        }
-        else if (Model.Input.ImageUrls != null && Model.Input.ImageUrls.Any())
-        {
-            <div class="d-flex flex-wrap gap-2">
-                @foreach (var url in Model.Input.ImageUrls)
-                {
-                    <div style="width:120px;position:relative">
-                        <img src="@url" alt="img" style="max-width:100%;border-radius:6px" />
+                    <span asp-validation-for="Input.Condition" class="swoop-validation-msg"></span>
+                </div>
+
+                <div class="swoop-field full">
+                    <label asp-for="Input.Description">Leírás</label>
+                    <textarea asp-for="Input.Description"></textarea>
+                    <span asp-validation-for="Input.Description" class="swoop-validation-msg"></span>
+                </div>
+
+                <div class="swoop-field full">
+                    <label>Új képek hozzáadása</label>
+                    <div class="swoop-upload-zone" onclick="document.getElementById('swoopEditFileInput').click()">
+                        <svg class="swoop-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12" />
+                        </svg>
+                        <p class="swoop-upload-label">Kattints a képek feltöltéséhez</p>
+                        <p class="swoop-upload-sub">PNG, JPG, WEBP — több kép is feltölthető</p>
                     </div>
-                }
+                    <input id="swoopEditFileInput" type="file" name="uploads" accept="image/*" multiple />
+                </div>
+
             </div>
-        }
-        else
-        {
-            <div class="text-muted">No images</div>
-        }
-    </div>
 
-    <form method="post" enctype="multipart/form-data" style="max-width:760px;" id="editForm">
-        <input asp-for="Input.Id" type="hidden" />
-        @* hidden primary Image id copied by JS on submit *@
-        <input type="hidden" name="primaryImageId" value="" />
-
-        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
-
-        <label class="form-label">Cím:</label>
-        <input asp-for="Input.Title" class="form-control mb-2" />
-        <span asp-validation-for="Input.Title" class="text-danger"></span>
-
-        <label class="form-label">Ár(HUF):</label>
-        <input asp-for="Input.Price" type="number" step="0.01" class="form-control mb-2" />
-
-        <label class="form-label">Kategória:</label>
-        <select asp-for="Input.CategoryId" class="form-control mb-2">
-            <option value="">-- Select a category --</option>
-            @foreach (var c in Model.Categories)
-            {
-                <option value="@c.Id" selected="@(Model.Input.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
-            }
-        </select>
-        <span asp-validation-for="Input.CategoryId" class="text-danger"></span>
-
-        <label class="form-label">Állapot:</label>
-        <select asp-for="Input.Condition" class="form-control mb-2">
-            <option value="Új" selected="@(Model.Input.Condition == "Új" ? "selected" : null)">Új</option>
-            <option value="Kiváló" selected="@(Model.Input.Condition == "Kiváló" ? "selected" : null)">Kiváló</option>
-            <option value="Kielégítő" selected="@(Model.Input.Condition == "Kielégítő" ? "selected" : null)">Kielégítő</option>
-            <option value="Használt" selected="@(Model.Input.Condition == "Használt" ? "selected" : null)">Használt</option>
-            <option value="Hibás" selected="@(Model.Input.Condition == "Hibás" ? "selected" : null)">Hibás</option>
-        </select>
-
-        <label class="form-label">Helyszín:</label>
-        <input asp-for="Input.Location" class="form-control mb-2" />
-
-        <label class="form-label">Leírás:</label>
-        <textarea asp-for="Input.Description" rows="6" class="form-control mb-2"></textarea>
-        <span asp-validation-for="Input.Description" class="text-danger"></span>
-
-        <label class="form-label">Új kép/képek hozzáadása:</label>
-        <input type="file" name="uploads" accept="image/*" multiple class="form-control mb-3" />
-
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary">Mentés</button>
-            <a asp-page="/Listings/Details" asp-route-azon="@Model.Input.Id" class="btn btn-secondary">Mégse</a>
-        </div>
-    </form>
-}
+            <div class="swoop-actions">
+                <button type="submit" class="swoop-btn-primary">Mentés</button>
+                <a asp-page="/Listings/Details" asp-route-azon="@Model.Input.Id" class="swoop-btn-secondary">Mégse</a>
+            </div>
+        </form>
+    }
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // copy selected radio value into hidden input inside the main form before submit
         (function () {
+            // copy selected primary radio into hidden field on submit
             var form = document.getElementById('editForm');
             if (!form) return;
             form.addEventListener('submit', function () {
@@ -128,6 +488,16 @@ else
                     var hidden = form.querySelector('input[name="primaryImageId"]');
                     if (hidden) hidden.value = sel.value;
                 }
+            });
+
+            // update badge labels when a primary radio is selected
+            document.querySelectorAll('input[name="primarySelector"]').forEach(function (radio) {
+                radio.addEventListener('change', function () {
+                    document.querySelectorAll('input[name="primarySelector"]').forEach(function (r) {
+                        var badge = document.querySelector('label[for="' + r.id + '"]');
+                        if (badge) badge.textContent = r.checked ? 'Fő kép' : 'Beállítás';
+                    });
+                });
             });
         })();
     </script>

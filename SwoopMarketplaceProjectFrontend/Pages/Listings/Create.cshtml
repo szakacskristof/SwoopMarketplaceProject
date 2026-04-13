@@ -2,70 +2,336 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Listings.CreateModel
 @inject SwoopMarketplaceProjectFrontend.Services.AuthSession AuthSession;
 
-<h1 style="font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Hirdetés feladása</h1>
+<style>
+    .swoop-form-wrap {
+        max-width: 680px;
+        padding: 2rem 0;
+        margin: 0 auto;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    }
 
-<form method="post" enctype="multipart/form-data" style="max-width:760px;background:#fff;padding:18px;border-radius:12px;box-shadow:0 8px 26px rgba(2,6,23,0.06);">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" style="color:#b91c1c;margin-bottom:8px"></div>
-
-    <label style="font-weight:700">Cím:</label>
-    <input asp-for="Input.Title" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px" />
-
-    <label style="font-weight:700">Ár(HUF):</label>
-    <input asp-for="Input.Price" type="number" step="0.01" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px" />
-
-    <label style="font-weight:700">Kategória:</label>
-    <select asp-for="Input.CategoryId" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:6px">
-        <option value="">-- Válassz kategóriát --</option>
-        @foreach (var c in Model.Categories)
-        {
-            <option value="@c.Id">@c.Name</option>
+        .swoop-form-wrap h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 1.75rem;
         }
-    </select>
-    <span asp-validation-for="Input.CategoryId" style="color:#b91c1c;font-size:13px"></span>
 
-    <label style="font-weight:700">Állapot:</label>
-    <select asp-for="Input.Condition" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px">
-        <option value="Új">Új</option>
-        <option value="Kiváló">Kiváló</option>
-        <option value="Kielégítő">Kielégítő</option>
-        <option value="Használt">Használt</option>
-        <option value="Hibás">Hibás</option>
-    </select>
+    .swoop-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 16px;
+    }
 
-    <label style="font-weight:700">Helyszín:</label>
-    <input asp-for="Input.Location" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px" />
+    .swoop-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 1.25rem;
+    }
 
-    <label style="font-weight:700">Leírás:</label>
-    <textarea asp-for="Input.Description" rows="6" style="width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px"></textarea>
+        .swoop-field.full {
+            grid-column: 1 / -1;
+        }
 
-    <label style="font-weight:700">Képek (Opcionális):</label>
-    <input id="fileInput" type="file" name="uploads" accept="image/*" multiple style="margin-bottom:12px" />
+        .swoop-field label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+            letter-spacing: .02em;
+        }
 
-    <div id="preview" class="d-flex flex-wrap gap-2 mb-3"></div>
+        .swoop-field input,
+        .swoop-field select,
+        .swoop-field textarea {
+            width: 100%;
+            padding: 9px 12px;
+            font-size: 15px;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #fff;
+            color: #222;
+            outline: none;
+            transition: border-color .15s, box-shadow .15s;
+            box-sizing: border-box;
+        }
 
-    @* hidden index of primary selected file (client-side) *@
-    <input type="hidden" name="primaryFileIndex" id="primaryFileIndex" value="" />
+            .swoop-field input:focus,
+            .swoop-field select:focus,
+            .swoop-field textarea:focus {
+                border-color: #7F77DD;
+                box-shadow: 0 0 0 3px rgba(127, 119, 221, 0.12);
+            }
 
-    <div style="display:flex;gap:10px">
-        <button type="submit" style="flex:1;padding:10px 14px;background:#6c5ce7;color:#fff;border-radius:10px;border:none;font-weight:800">Hírdetés hozzáadása</button>
-        <a asp-page="/Listings/Index" style="flex:1;padding:10px 14px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Mégse</a>
-    </div>
-</form>
+        .swoop-field textarea {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
 
+    .swoop-condition-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 6px;
+    }
 
+    .swoop-cond-opt {
+        position: relative;
+    }
 
+        .swoop-cond-opt input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
 
+        .swoop-cond-opt label {
+            display: block;
+            text-align: center;
+            padding: 7px 4px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #666;
+            background: #fff;
+            transition: all .15s;
+            letter-spacing: 0;
+        }
 
+        .swoop-cond-opt input[type="radio"]:checked + label {
+            border-color: #7F77DD;
+            background: #EEEDFE;
+            color: #534AB7;
+        }
 
+    .swoop-upload-zone {
+        border: 1px dashed #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        background: #f9f9fb;
+        cursor: pointer;
+        transition: border-color .15s;
+    }
 
+        .swoop-upload-zone:hover {
+            border-color: #7F77DD;
+        }
 
+    .swoop-upload-icon {
+        width: 32px;
+        height: 32px;
+        margin: 0 auto 8px;
+        opacity: .4;
+        display: block;
+    }
+
+    .swoop-upload-label {
+        font-size: 13px;
+        color: #666;
+    }
+
+    .swoop-upload-sub {
+        font-size: 12px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    #swoopFileInput {
+        display: none;
+    }
+
+    #swoopPreview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .swoop-preview-wrap {
+        position: relative;
+        width: 100px;
+    }
+
+        .swoop-preview-wrap img {
+            width: 100%;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            display: block;
+        }
+
+    .swoop-primary-badge {
+        position: absolute;
+        bottom: 5px;
+        left: 5px;
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(127, 119, 221, 0.85);
+        color: #fff;
+        cursor: pointer;
+        user-select: none;
+        transition: background .15s;
+    }
+
+        .swoop-primary-badge.active {
+            background: #534AB7;
+        }
+
+    .swoop-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: .5rem;
+    }
+
+    .swoop-btn-primary {
+        padding: 10px;
+        background: #6c5ce7;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        transition: background .15s;
+    }
+
+        .swoop-btn-primary:hover {
+            background: #534AB7;
+        }
+
+    .swoop-btn-secondary {
+        padding: 10px;
+        background: #f0f0f5;
+        color: #444;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        text-align: center;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        display: block;
+        transition: background .15s;
+    }
+
+        .swoop-btn-secondary:hover {
+            background: #e5e5f0;
+        }
+
+    .swoop-validation-summary {
+        color: #b91c1c;
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    .swoop-validation-msg {
+        color: #b91c1c;
+        font-size: 12px;
+        margin-top: 2px;
+    }
+</style>
+
+<div class="swoop-form-wrap">
+    <h1>Hirdetés feladása</h1>
+
+    <form method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" class="swoop-validation-summary"></div>
+
+        <div class="swoop-form-grid">
+
+            <div class="swoop-field full">
+                <label asp-for="Input.Title">Cím</label>
+                <input asp-for="Input.Title" placeholder="pl. iPhone 14 Pro, 128GB" />
+                <span asp-validation-for="Input.Title" class="swoop-validation-msg"></span>
+            </div>
+
+            <div class="swoop-field">
+                <label asp-for="Input.Price">Ár (HUF)</label>
+                <input asp-for="Input.Price" type="number" step="0.01" placeholder="0" />
+                <span asp-validation-for="Input.Price" class="swoop-validation-msg"></span>
+            </div>
+
+            <div class="swoop-field">
+                <label asp-for="Input.Location">Helyszín</label>
+                <input asp-for="Input.Location" placeholder="pl. Budapest" />
+                <span asp-validation-for="Input.Location" class="swoop-validation-msg"></span>
+            </div>
+
+            <div class="swoop-field full">
+                <label asp-for="Input.CategoryId">Kategória</label>
+                <select asp-for="Input.CategoryId">
+                    <option value="">-- Válassz kategóriát --</option>
+                    @foreach (var c in Model.Categories)
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
+                </select>
+                <span asp-validation-for="Input.CategoryId" class="swoop-validation-msg"></span>
+            </div>
+
+            <div class="swoop-field full">
+                <label>Állapot</label>
+                <div class="swoop-condition-grid">
+                    @foreach (var cond in new[] { "Új", "Kiváló", "Kielégítő", "Használt", "Hibás" })
+                    {
+                        <div class="swoop-cond-opt">
+                            <input type="radio"
+                                   asp-for="Input.Condition"
+                                   value="@cond"
+                                   id="cond_@cond" />
+                            <label for="cond_@cond">@cond</label>
+                        </div>
+                    }
+                </div>
+                <span asp-validation-for="Input.Condition" class="swoop-validation-msg"></span>
+            </div>
+
+            <div class="swoop-field full">
+                <label asp-for="Input.Description">Leírás</label>
+                <textarea asp-for="Input.Description" placeholder="Írj részletes leírást a termékről..."></textarea>
+                <span asp-validation-for="Input.Description" class="swoop-validation-msg"></span>
+            </div>
+
+            <div class="swoop-field full">
+                <label>Képek (opcionális)</label>
+                <div class="swoop-upload-zone" onclick="document.getElementById('swoopFileInput').click()">
+                    <svg class="swoop-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M16 8l-4-4-4 4M12 4v12" />
+                    </svg>
+                    <p class="swoop-upload-label">Kattints a képek feltöltéséhez</p>
+                    <p class="swoop-upload-sub">PNG, JPG, WEBP — több kép is feltölthető</p>
+                </div>
+                <input id="swoopFileInput" type="file" name="uploads" accept="image/*" multiple />
+                <div id="swoopPreview"></div>
+                <input type="hidden" name="primaryFileIndex" id="primaryFileIndex" value="" />
+            </div>
+
+        </div>
+
+        <div class="swoop-actions">
+            <button type="submit" class="swoop-btn-primary">Hirdetés hozzáadása</button>
+            <a asp-page="/Listings/Index" class="swoop-btn-secondary">Mégse</a>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
     <script>
         (function () {
-            var input = document.getElementById('fileInput');
-            var preview = document.getElementById('preview');
+            var input = document.getElementById('swoopFileInput');
+            var preview = document.getElementById('swoopPreview');
             var primaryIndex = document.getElementById('primaryFileIndex');
 
             if (!input || !preview) return;
@@ -79,53 +345,32 @@
 
                 files.forEach(function (f, idx) {
                     var url = URL.createObjectURL(f);
-                    var wrapper = document.createElement('div');
-                    wrapper.style.width = '120px';
-                    wrapper.style.position = 'relative';
+
+                    var wrap = document.createElement('div');
+                    wrap.className = 'swoop-preview-wrap';
 
                     var img = document.createElement('img');
                     img.src = url;
-                    img.style.maxWidth = '100%';
-                    img.style.borderRadius = '6px';
-                    wrapper.appendChild(img);
+                    wrap.appendChild(img);
 
-                    // radio for choosing primary
-                    var radioWrapper = document.createElement('div');
-                    radioWrapper.style.position = 'absolute';
-                    radioWrapper.style.left = '6px';
-                    radioWrapper.style.bottom = '6px';
-                    radioWrapper.style.display = 'flex';
-                    radioWrapper.style.gap = '6px';
-                    var radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = 'primarySelectorCreate';
-                    radio.value = idx.toString();
-                    radio.id = 'create_prim_' + idx;
-                    // default: first file selected
-                    if (idx === 0) radio.checked = true;
+                    var badge = document.createElement('span');
+                    badge.className = 'swoop-primary-badge' + (idx === 0 ? ' active' : '');
+                    badge.textContent = idx === 0 ? 'Fő kép' : 'Beállítás';
 
-                    radio.addEventListener('change', function () {
-                        primaryIndex.value = this.value;
+                    badge.addEventListener('click', function () {
+                        document.querySelectorAll('.swoop-primary-badge').forEach(function (b) {
+                            b.className = 'swoop-primary-badge';
+                            b.textContent = 'Beállítás';
+                        });
+                        badge.className = 'swoop-primary-badge active';
+                        badge.textContent = 'Fő kép';
+                        primaryIndex.value = idx.toString();
                     });
 
-                    // set initial primary index when first file exists
                     if (idx === 0) primaryIndex.value = '0';
 
-                    var label = document.createElement('label');
-                    label.htmlFor = radio.id;
-                    label.className = 'small text-white';
-                    label.style.background = '#00000055';
-                    label.style.padding = '2px 6px';
-                    label.style.borderRadius = '6px';
-                    label.style.color = '#fff';
-                    label.style.fontSize = '12px';
-                    label.textContent = 'Primary';
-
-                    radioWrapper.appendChild(radio);
-                    radioWrapper.appendChild(label);
-                    wrapper.appendChild(radioWrapper);
-
-                    preview.appendChild(wrapper);
+                    wrap.appendChild(badge);
+                    preview.appendChild(wrap);
                 });
             });
         })();
