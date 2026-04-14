@@ -9,14 +9,13 @@
 
         public string Phone { get; set; } = null!;
 
-      
-
         public string? ProfileImageUrl { get; set; }
 
         public string? Bio { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
-
+        // roles returned by backend (may be empty)
+        public List<string> Roles { get; set; } = new();
     }
 }

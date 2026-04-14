@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SwoopMarketplaceProject.Models;
@@ -18,10 +19,12 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
     public class UsersController : ControllerBase
     {
         private readonly SwoopContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public UsersController(SwoopContext context)
+        public UsersController(SwoopContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // DTO for updates - keeps binding small and safe
@@ -41,7 +44,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<ActionResult<IEnumerable<object>>> GetUsers()
         {
             // return lightweight user projection (avoid exposing PasswordHash)
-            var users = await _context.Users
+            var appUsers = await _context.Users
                 .Select(u => new {
                     u.Id,
                     u.Username,
@@ -52,7 +55,33 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     u.CreatedAt
                 })
                 .ToListAsync();
-            return Ok(users);
+
+            var result = new List<object>();
+            foreach (var u in appUsers)
+            {
+                List<string> roles = new();
+                if (!string.IsNullOrWhiteSpace(u.Email))
+                {
+                    var identityUser = await _userManager.FindByEmailAsync(u.Email);
+                    if (identityUser != null)
+                    {
+                        roles = (await _userManager.GetRolesAsync(identityUser)).ToList();
+                    }
+                }
+
+                result.Add(new {
+                    u.Id,
+                    u.Username,
+                    u.Email,
+                    u.Phone,
+                    u.ProfileImageUrl,
+                    u.Bio,
+                    u.CreatedAt,
+                    Roles = roles
+                });
+            }
+
+            return Ok(result);
         }
 
         // GET: api/Users/5
@@ -73,12 +102,26 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 })
                 .FirstOrDefaultAsync();
 
-            if (user == null)
+            if (user == null) return NotFound();
+
+            List<string> roles = new();
+            if (!string.IsNullOrWhiteSpace(user.Email))
             {
-                return NotFound();
+                var identityUser = await _userManager.FindByEmailAsync(user.Email);
+                if (identityUser != null)
+                    roles = (await _userManager.GetRolesAsync(identityUser)).ToList();
             }
 
-            return Ok(user);
+            return Ok(new {
+                user.Id,
+                user.Username,
+                user.Email,
+                user.Phone,
+                user.ProfileImageUrl,
+                user.Bio,
+                user.CreatedAt,
+                Roles = roles
+            });
         }
 
         // PUT: api/Users/5

@@ -1,0 +1,170 @@
+﻿@page
+@model SwoopMarketplaceProjectFrontend.Pages.Admin.IndexModel
+@using SwoopMarketplaceProjectFrontend.Dtos
+@inject SwoopMarketplaceProjectFrontend.Services.AuthSession AuthSession
+
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<h1>Admin felület</h1>
+
+<ul class="nav nav-tabs" id="adminTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.SelectedTab == "listings" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-listings" type="button">Hirdetések</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.SelectedTab == "users" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">Felhasználók</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link @(Model.SelectedTab == "reports" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-reports" type="button">Reportolt hirdetések</button>
+    </li>
+</ul>
+
+<div class="tab-content mt-3">
+    <div class="tab-pane fade @(Model.SelectedTab == "listings" ? "show active" : "")" id="tab-listings" role="tabpanel">
+        <h4>Összes hirdetés</h4>
+        @if (Model.Listings?.Any() != true)
+        {
+            <p>Nincs hirdetés.</p>
+        }
+        else
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Cím</th>
+                        <th>Tulaj</th>
+                        <th>Ár</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Listings)
+                    {
+                        <tr>
+                            <td>@item.Listing.Title</td>
+                            <td>@item.OwnerEmail</td>
+                            <td>@item.Listing.Price</td>
+                            <td>
+                                <form method="post" asp-page-handler="DeleteListing" class="d-inline">
+                                    <input type="hidden" name="azon" value="@item.Listing.Id" />
+                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a hirdetést?');">Törlés</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div class="tab-pane fade @(Model.SelectedTab == "users" ? "show active" : "")" id="tab-users" role="tabpanel">
+        <h4>Felhasználók</h4>
+        @if (Model.Users?.Any() != true)
+        {
+            <p>Nincs felhasználó.</p>
+        }
+        else
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Felhasználónév</th>
+                        <th>Email</th>
+                        <th>Szerep</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var u in Model.Users)
+                    {
+                        <tr>
+                            <td>@u.Username</td>
+                            <td>@u.Email</td>
+                            <td>@(u.Roles?.Any() == true ? string.Join(", ", u.Roles) : "User")</td>
+                            <td>
+                                <form method="post" asp-page-handler="DeleteUser" class="d-inline">
+                                    <input type="hidden" name="id" value="@u.Id" />
+                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">Törlés</button>
+                                </form>
+
+                                @* Csak Tulaj/Owner láthatja a szerep beállító gombot *@
+                                @if (AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
+                                {
+                                    var current = (u.Roles?.FirstOrDefault() ?? "User");
+                                    if (!string.Equals(current, "User", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form method="post" asp-page-handler="SetUserRole" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="role" value="User" />
+                                            <button class="btn btn-sm btn-secondary" type="submit" onclick="return confirm('Felhasználóként szeretnéd beállítani?');">Beállít felhasználónak</button>
+                                        </form>
+                                    }
+                                    if (!string.Equals(current, "Admin", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form method="post" asp-page-handler="SetUserRole" class="d-inline ms-1">
+                                            <input type="hidden" name="id" value="@u.Id" />
+                                            <input type="hidden" name="role" value="Admin" />
+                                            <button class="btn btn-sm btn-warning" type="submit" onclick="return confirm('Admin szerepet szeretnél adni ennek a felhasználónak?');">Beállít adminnak</button>
+                                        </form>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+
+    <div class="tab-pane fade @(Model.SelectedTab == "reports" ? "show active" : "")" id="tab-reports" role="tabpanel">
+        <h4>Reportok</h4>
+        @if (Model.Reports?.Any() != true)
+        {
+            <p>Nincs report.</p>
+        }
+        else
+        {
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Leírás</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model.Reports)
+                    {
+                        <tr>
+                            <td>@r.Description</td>
+                            <td>
+                                <form method="post" asp-page-handler="DeleteReport" class="d-inline">
+                                    <input type="hidden" name="id" value="@r.ReportId" />
+                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a reportot?');">Törlés</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // URL param vagy server által beállított tab alapján nyitja a fület
+        (function () {
+            var selected = '@Model.SelectedTab';
+            if (selected) {
+                var tabId = selected === 'users' ? '#tab-users' : (selected === 'reports' ? '#tab-reports' : '#tab-listings');
+                var tab = document.querySelector('button[data-bs-target="' + tabId + '"]');
+                if (tab) {
+                    var tabTrigger = new bootstrap.Tab(tab);
+                    tabTrigger.show();
+                }
+            }
+        })();
+    </script>
+}

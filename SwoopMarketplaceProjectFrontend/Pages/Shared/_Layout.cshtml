@@ -301,6 +301,12 @@
                             }
                         </span>
 
+                        @* Admin gomb: csak Admin vagy Owner/Tulaj szerepű felhasználók látják *@
+                        @if (AuthSession.IsInRole("Admin") || AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
+                        {
+                            <a class="swoop-nav-link" asp-area="" asp-page="/Admin/Index">Admin</a>
+                        }
+
                         <form method="post" asp-page="/Account/Logout" class="d-inline">
                             <button type="submit" class="swoop-btn-logout">Kijelentkezés</button>
                         </form>

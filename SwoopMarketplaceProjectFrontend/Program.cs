@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using SwoopMarketplaceProjectFrontend.Infrastructure;
 using SwoopMarketplaceProjectFrontend.Services;
 
@@ -19,14 +20,13 @@ namespace SwoopMarketplaceProjectFrontend
             new HttpClientHandler { UseProxy = false }
             );
 
-
-
             builder.Services.AddScoped<ListingApi>();
             builder.Services.AddScoped<CategoryApi>();
             builder.Services.AddScoped<ListingViewApi>();
             builder.Services.AddScoped<ListingImageApi>();
             builder.Services.AddScoped<UserApi>();
             builder.Services.AddScoped<ReportApi>();
+            builder.Services.AddScoped<AdminApi>(); // <-- Registered AdminApi
 
             // Register bookmark service so PageModels that depend on it can be activated.
             builder.Services.AddScoped<BookmarkApi>();
@@ -55,6 +55,15 @@ namespace SwoopMarketplaceProjectFrontend
             .AddHttpMessageHandler<JwtBearerHandler>();
 
             builder.Services.AddScoped<AuthPageFilter>();
+
+            // Register authentication (default scheme) so UseAuthorization has a challenge scheme.
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Account/Login";
+                    options.AccessDeniedPath = "/Errors/Forbidden";
+                });
+
             // Add services to the container.
             builder.Services.AddRazorPages()
             .AddMvcOptions(options =>
@@ -82,6 +91,8 @@ namespace SwoopMarketplaceProjectFrontend
 
             app.UseSession();
 
+            // Ensure authentication middleware runs before authorization
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapRazorPages();
