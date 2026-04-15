@@ -4,7 +4,7 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Users.MyProfileModel
 @inject AuthSession AuthSession
 
-<h2>My profile</h2>
+<h2>Saját Profil</h2>
 
 @if (!string.IsNullOrEmpty(Model.Error))
 {
@@ -17,7 +17,7 @@
 
 @if (Model.User is null)
 {
-    <div class="alert alert-warning">Profile not found.</div>
+    <div class="alert alert-warning">Nem találtuk a profilját!</div>
 }
 else
 {
@@ -34,7 +34,7 @@ else
             </div>
 
             <div class="col-md-4 text-center">
-                <label class="form-label d-block">Current profile image</label>
+                <label class="form-label d-block">Profilkép</label>
                 <div style="width:140px;height:140px;margin:auto;border-radius:8px;overflow:hidden;border:1px solid #e6eef8;">
                     <img id="currentProfileImg" src="@(Model.User.ProfileImageUrl ?? "/images/avatar.png")" style="width:100%;height:100%;object-fit:cover;display:block" />
                 </div>
@@ -42,30 +42,30 @@ else
         </div>
 
         <div class="mb-3">
-            <label asp-for="User.Username" class="form-label">Username</label>
+            <label asp-for="User.Username" class="form-label">Felhasználónév</label>
             <input asp-for="User.Username" class="form-control" />
             <span asp-validation-for="User.Username" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
-            <label asp-for="User.Phone" class="form-label">Phone</label>
+            <label asp-for="User.Phone" class="form-label">Telefonszám</label>
             <input asp-for="User.Phone" class="form-control" />
             <span asp-validation-for="User.Phone" class="text-danger"></span>
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Upload new profile picture</label>
+            <label class="form-label">Új Profilkép Feltöltése</label>
             <input asp-for="ProfileImageFile" type="file" accept="image/*" class="form-control" onchange="previewProfileImage(this)" />
-            <div class="form-text">Optional. First uploaded image will become your profile picture.</div>
+            <div class="form-text">Nem kötelező.Kérem válasszon egy képet,amennyiben szeretné megváltoztatni a profilképét!</div>
         </div>
 
         <div class="mb-3">
-            <label asp-for="User.Bio" class="form-label">Bio</label>
+            <label asp-for="User.Bio" class="form-label">Leírás</label>
             <textarea asp-for="User.Bio" class="form-control" rows="4"></textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a class="btn btn-secondary ms-2" asp-page="/Index">Cancel</a>
+        <button type="submit" class="btn btn-primary">Mentés</button>
+        <a class="btn btn-secondary ms-2" asp-page="/Index">Mégsem</a>
     </form>
 }
 
