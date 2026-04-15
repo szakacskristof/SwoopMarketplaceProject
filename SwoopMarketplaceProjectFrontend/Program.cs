@@ -40,7 +40,6 @@ namespace SwoopMarketplaceProjectFrontend
             });
 
             builder.Services.AddHttpContextAccessor();
-
             builder.Services.AddScoped<AuthSession>();
             builder.Services.AddScoped<AuthApi>();
             builder.Services.AddTransient<JwtBearerHandler>();
