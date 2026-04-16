@@ -22,6 +22,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         public ListingDto? Listing { get; private set; }
         public string? OwnerEmail { get; private set; }
         public string? OwnerProfileImageUrl { get; private set; }
+        public string? OwnerPhone { get; private set; }
+        public string? OwnerUserName { get; private set; }
         public bool CanEdit { get; private set; }
         public bool CanDelete { get; private set; }
 
@@ -38,6 +40,27 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             Listing = lw.Listing;
             OwnerEmail = lw.OwnerEmail;
             OwnerProfileImageUrl = lw.OwnerProfileImageUrl;
+
+            // Load owner's phone 
+            try
+            {
+                var owner = await _userApi.GetByAzonAsync(Listing.UserId);
+                OwnerPhone = owner?.Phone;
+            }
+            catch
+            {
+                OwnerPhone = null;
+            }
+            // Load owner's username
+            try
+            {
+                var owner = await _userApi.GetByAzonAsync(Listing.UserId);
+               OwnerUserName = owner?.Username;
+            }
+            catch
+            {
+                OwnerUserName = null;
+            }
 
             var currentEmail = _auth.GetEmail();
             var isAdmin = _auth.IsInRole("Admin");

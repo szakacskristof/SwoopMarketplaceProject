@@ -262,7 +262,7 @@
                 @if (Model.ListingInfo != null)
                 {
                     <div class="listing-info">
-                        Hirdetés: @Model.ListingInfo.Title
+                         <a asp-page="./Listings/Details" asp-route-azon="@Model.ListingInfo.Id">Hirdetés: @Model.ListingInfo.Title</a>
                     </div>
                 }
             </div>
