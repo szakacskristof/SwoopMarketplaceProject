@@ -1,45 +1,334 @@
 ﻿@page
 @model SwoopMarketplaceProjectFrontend.Pages.Account.RegisterModel
 
-<h2>Regisztráció</h2>
+<style>
+    .auth-card {
+        max-width: 460px;
+        margin: 3rem auto;
+        background: #fff;
+        border: 1px solid #e8edf4;
+        border-radius: 14px;
+        padding: 2.25rem 2.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
 
-@if (!string.IsNullOrWhiteSpace(Model.Error))
-{
-    <div class="alert alert-danger">
-        @Model.Error
-    </div>
-}
+        .auth-card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a2233;
+            margin-bottom: 0.35rem;
+        }
 
-<form method="post" class="mt-4">
-    <div class="mb-3">
-        <label asp-for="Email" class="form-label">Email cím</label>
-        <input asp-for="Email" class="form-control" type="email" />
-        <span asp-validation-for="Email" class="text-danger"></span>
-    </div>
+    .auth-subtitle {
+        font-size: 0.88rem;
+        color: #7a8ba0;
+        margin-bottom: 1.75rem;
+    }
 
-    <div class="mb-3">
-        <label asp-for="Phone" class="form-label">Telefonszám</label>
-        <input asp-for="Phone" class="form-control" type="tel" />
-        <span asp-validation-for="Phone" class="text-danger"></span>
-    </div>
-   
-    <div class="mb-3">
-        <label asp-for="Password" class="form-label">Jelszó</label>
-        <input asp-for="Password" class="form-control" type="password" />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.35rem;
+        display: block;
+    }
 
-    <button type="submit" class="btn btn-primary">
-        Regisztráció
-    </button>
+    .form-control {
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 0.6rem 0.85rem;
+        font-size: 0.95rem;
+        color: #1a2233;
+        background: #fff;
+        width: 100%;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
 
-    <a asp-page="/Account/Login" class="btn btn-link">
-        Már van fiókod? Bejelentkezés
-    </a>
-</form>
+        .form-control:focus {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+            outline: none;
+        }
+
+    .mb-3 {
+        margin-bottom: 1.1rem;
+    }
+
+    .alert {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid transparent;
+    }
+
+    .alert-danger {
+        background: #fff0f0;
+        color: #b91c1c;
+        border-color: #fcd5d5;
+    }
+
+    .text-danger {
+        font-size: 0.8rem;
+        color: #dc2626;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    /* Phone input */
+    .phone-input-wrap {
+        display: flex;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+        .phone-input-wrap:focus-within {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+        }
+
+    .phone-dial-select {
+        border: none;
+        border-right: 1px solid #dbe3ee;
+        background: #f4f7fb;
+        padding: 0.6rem 0.6rem;
+        font-size: 0.9rem;
+        color: #1a2233;
+        cursor: pointer;
+        outline: none;
+        min-width: 90px;
+        flex-shrink: 0;
+    }
+
+    .phone-local-input {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        flex: 1;
+        outline: none;
+    }
+
+        .phone-local-input:focus {
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+    /* Password wrapper */
+    .password-wrap {
+        position: relative;
+    }
+
+        .password-wrap .form-control {
+            padding-right: 2.8rem;
+        }
+
+    .password-toggle {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #9aabbd;
+        padding: 0;
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+        .password-toggle:hover {
+            color: #4a5568;
+        }
+
+    /* Strength bar */
+    .strength-bar-wrap {
+        display: flex;
+        gap: 4px;
+        margin-top: 0.5rem;
+    }
+
+    .strength-segment {
+        height: 4px;
+        flex: 1;
+        border-radius: 2px;
+        background: #e8edf4;
+        transition: background 0.2s;
+    }
+
+    .strength-label {
+        font-size: 0.78rem;
+        color: #9aabbd;
+        margin-top: 0.3rem;
+    }
+
+    /* Divider */
+    .auth-divider {
+        border: none;
+        border-top: 1px solid #e8edf4;
+        margin: 1.5rem 0;
+    }
+
+    /* Actions */
+    .btn-primary {
+        width: 100%;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.65rem 1.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+    }
+
+        .btn-primary:hover {
+            background: #1d4fd8;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.99);
+        }
+
+    .login-link {
+        display: block;
+        text-align: center;
+        margin-top: 1rem;
+        font-size: 0.88rem;
+        color: #7a8ba0;
+    }
+
+        .login-link a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+            .login-link a:hover {
+                text-decoration: underline;
+            }
+</style>
+
+<div class="auth-card">
+    <h2>Regisztráció</h2>
+    <p class="auth-subtitle">Hozzon létre egy új fiókot!</p>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Error))
+    {
+        <div class="alert alert-danger">@Model.Error</div>
+    }
+
+    <form method="post">
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email-cím</label>
+            <input asp-for="Email" class="form-control" type="email" placeholder="pelda@email.hu" autocomplete="email" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Telefonszám</label>
+            <div class="phone-input-wrap">
+                <select id="phoneDialCode" class="phone-dial-select" onchange="updatePhoneField()">
+                    <option value="+36">🇭🇺 +36</option>
+                    <option value="+43">🇦🇹 +43</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+33">🇫🇷 +33</option>
+                    <option value="+39">🇮🇹 +39</option>
+                    <option value="+34">🇪🇸 +34</option>
+                    <option value="+48">🇵🇱 +48</option>
+                    <option value="+40">🇷🇴 +40</option>
+                    <option value="+421">🇸🇰 +421</option>
+                    <option value="+420">🇨🇿 +420</option>
+                    <option value="+380">🇺🇦 +380</option>
+                    <option value="+1">🇺🇸 +1</option>
+                </select>
+                <input type="tel"
+                       id="phoneLocal"
+                       class="form-control phone-local-input"
+                       placeholder="30 123 4567"
+                       autocomplete="tel-national"
+                       oninput="updatePhoneField();formatLocalPhone(this)" />
+            </div>
+            <input asp-for="Phone" type="hidden" id="Phone" />
+            <span asp-validation-for="Phone" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label">Jelszó</label>
+            <div class="password-wrap">
+                <input asp-for="Password" class="form-control" type="password" id="passwordInput"
+                       placeholder="Legalább 8 karakter"
+                       autocomplete="new-password"
+                       oninput="checkStrength(this.value)" />
+                <button type="button" class="password-toggle" onclick="togglePassword()" id="toggleBtn" title="Jelszó megjelenítése">
+                    👁
+                </button>
+            </div>
+            <div class="strength-bar-wrap">
+                <div class="strength-segment" id="s1"></div>
+                <div class="strength-segment" id="s2"></div>
+                <div class="strength-segment" id="s3"></div>
+                <div class="strength-segment" id="s4"></div>
+            </div>
+            <div class="strength-label" id="strengthLabel"></div>
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+
+        <hr class="auth-divider" />
+
+        <button type="submit" class="btn-primary">Regisztráció</button>
+
+        <p class="login-link">
+            Már van fiókod? <a asp-page="/Account/Login">Bejelentkezés</a>
+        </p>
+    </form>
+</div>
 
 @section Scripts {
-
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        function updatePhoneField() {
+            var dial = document.getElementById('phoneDialCode').value;
+            var local = document.getElementById('phoneLocal').value.replace(/\s/g, '');
+            document.getElementById('Phone').value = local ? dial + local : '';
+        }
 
+        function formatLocalPhone(input) {
+            var digits = input.value.replace(/\D/g, '');
+            var parts = [];
+            if (digits.length > 0) parts.push(digits.substring(0, 2));
+            if (digits.length > 2) parts.push(digits.substring(2, 5));
+            if (digits.length > 5) parts.push(digits.substring(5, 9));
+            input.value = parts.join(' ');
+        }
+
+        function togglePassword() {
+            var inp = document.getElementById('passwordInput');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+        }
+
+        function checkStrength(val) {
+            var score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[0-9]/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+
+            var colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+            var labels = ['', 'Gyenge', 'Közepes', 'Jó', 'Erős'];
+
+            for (var i = 1; i <= 4; i++) {
+                var seg = document.getElementById('s' + i);
+                seg.style.background = i <= score ? colors[score] : '#e8edf4';
+            }
+
+            var lbl = document.getElementById('strengthLabel');
+            lbl.textContent = val.length > 0 ? labels[score] : '';
+            lbl.style.color = colors[score] || '#9aabbd';
+        }
+    </script>
 }

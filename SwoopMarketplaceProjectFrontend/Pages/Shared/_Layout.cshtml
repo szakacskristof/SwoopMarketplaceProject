@@ -177,7 +177,9 @@
 
         /* ── Main content ── */
         .swoop-main {
-            min-height: calc(100vh - 120px);
+            /* use flex-grow instead of hard calc; body is a column flex container */
+            flex: 1 1 auto;
+            min-height: 0; /* allow flex children to shrink correctly */
             padding: 2rem 0 3rem;
         }
 
@@ -245,7 +247,7 @@
 
                 @* Logo *@
                 <a class="swoop-logo" asp-area="" asp-page="/Index">
-                    <img src="https://localhost:7000/images/swooplogo.png" alt="Swoop" height="36" />
+                    <img src="https://localhost:7000/images/swooplogo.png" alt="Swoop" height="52" style="max-width:180px; object-fit:contain;" />
                 </a>
 
                 @* Left nav links *@

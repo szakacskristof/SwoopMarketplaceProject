@@ -4,70 +4,331 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Users.MyProfileModel
 @inject AuthSession AuthSession
 
-<h2>Saját Profil</h2>
+<style>
+    .profile-card {
+        max-width: 720px;
+        margin: 2rem auto;
+        background: #fff;
+        border: 1px solid #e8edf4;
+        border-radius: 14px;
+        padding: 2rem 2.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
 
-@if (!string.IsNullOrEmpty(Model.Error))
-{
-    <div class="alert alert-danger">@Model.Error</div>
-}
-@if (!string.IsNullOrEmpty(Model.Message))
-{
-    <div class="alert alert-success">@Model.Message</div>
-}
+        .profile-card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a2233;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e8edf4;
+        }
 
-@if (Model.User is null)
-{
-    <div class="alert alert-warning">Nem találtuk a profilját!</div>
-}
-else
-{
-    <form method="post" enctype="multipart/form-data">
-        @* keep the id as a hidden field so it posts back *@
-        <input asp-for="User.Id" type="hidden" />
+    .profile-avatar-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+    }
 
-        <div class="row mb-3">
-            <div class="col-md-8">
-                <label asp-for="User.Email" class="form-label">Email</label>
-                @* show email as readonly (readonly fields are posted) so user sees it but cannot edit it *@
-                <input asp-for="User.Email" class="form-control" readonly />
-                <span asp-validation-for="User.Email" class="text-danger"></span>
-            </div>
+    .profile-avatar-frame {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 3px solid #e8edf4;
+        background: #f4f7fb;
+    }
 
-            <div class="col-md-4 text-center">
-                <label class="form-label d-block">Profilkép</label>
-                <div style="width:140px;height:140px;margin:auto;border-radius:8px;overflow:hidden;border:1px solid #e6eef8;">
-                    <img id="currentProfileImg" src="@(Model.User.ProfileImageUrl ?? "/images/avatar.png")" style="width:100%;height:100%;object-fit:cover;display:block" />
+        .profile-avatar-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .profile-avatar-label {
+        font-size: 0.78rem;
+        color: #7a8ba0;
+        font-weight: 500;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 0.35rem;
+    }
+
+    .form-control {
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 0.55rem 0.85rem;
+        font-size: 0.95rem;
+        color: #1a2233;
+        background: #fff;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+        .form-control:focus {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+            outline: none;
+        }
+
+        .form-control[readonly] {
+            background: #f4f7fb;
+            color: #7a8ba0;
+            cursor: not-allowed;
+        }
+
+    .form-text {
+        font-size: 0.8rem;
+        color: #9aabbd;
+        margin-top: 0.3rem;
+    }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 110px;
+    }
+
+    .file-input-wrap .form-control {
+        padding: 0.45rem 0.75rem;
+        font-size: 0.88rem;
+    }
+
+    .profile-actions {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-primary {
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.5rem;
+        font-size: 0.93rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+    }
+
+        .btn-primary:hover {
+            background: #1d4fd8;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+    .btn-secondary {
+        background: #f1f5fb;
+        color: #4a5568;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        padding: 0.6rem 1.4rem;
+        font-size: 0.93rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: background 0.15s;
+    }
+
+        .btn-secondary:hover {
+            background: #e4ecf7;
+            color: #2563eb;
+        }
+
+    .alert {
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        margin-bottom: 1.25rem;
+        border: 1px solid transparent;
+    }
+
+    .alert-danger {
+        background: #fff0f0;
+        color: #b91c1c;
+        border-color: #fcd5d5;
+    }
+
+    .alert-success {
+        background: #f0fff4;
+        color: #166534;
+        border-color: #bbf7d0;
+    }
+
+    .alert-warning {
+        background: #fffbea;
+        color: #92400e;
+        border-color: #fde68a;
+    }
+
+    .section-divider {
+        border: none;
+        border-top: 1px solid #e8edf4;
+        margin: 1.5rem 0;
+    }
+
+    .phone-input-wrap {
+        display: flex;
+        gap: 0;
+        border: 1px solid #dbe3ee;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+        .phone-input-wrap:focus-within {
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74,144,217,0.12);
+        }
+
+    .phone-dial-select {
+        border: none;
+        border-right: 1px solid #dbe3ee;
+        background: #f4f7fb;
+        padding: 0.55rem 0.6rem;
+        font-size: 0.9rem;
+        color: #1a2233;
+        cursor: pointer;
+        outline: none;
+        min-width: 90px;
+        flex-shrink: 0;
+    }
+
+    .phone-local-input {
+        border: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        flex: 1;
+        outline: none;
+    }
+
+        .phone-local-input:focus {
+            box-shadow: none !important;
+            border: none !important;
+        }
+
+    @@media (max-width: 576px) {
+        .profile-card {
+            padding: 1.25rem 1rem;
+            margin: 1rem;
+        }
+
+        .profile-row {
+            flex-direction: column-reverse;
+            align-items: stretch;
+        }
+
+        .profile-avatar-wrap {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+
+<div class="profile-card">
+    <h2>Saját Profil</h2>
+
+    @if (!string.IsNullOrEmpty(Model.Error))
+    {
+        <div class="alert alert-danger">@Model.Error</div>
+    }
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert alert-success">@Model.Message</div>
+    }
+
+    @if (Model.User is null)
+    {
+        <div class="alert alert-warning">Nem találtuk a profilját!</div>
+    }
+    else
+    {
+        <form method="post" enctype="multipart/form-data">
+            <input asp-for="User.Id" type="hidden" />
+
+            <div class="row mb-4 profile-row" style="display:flex;gap:1.5rem;align-items:flex-start;">
+                <div style="flex:1;min-width:0;">
+                    <div class="mb-3">
+                        <label asp-for="User.Email" class="form-label">Email-cím</label>
+                        <input asp-for="User.Email" class="form-control" readonly />
+                        <span asp-validation-for="User.Email" class="text-danger" style="font-size:0.8rem;"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="User.Username" class="form-label">Felhasználónév</label>
+                        <input asp-for="User.Username" class="form-control" placeholder="pl. kovacs_janos" />
+                        <span asp-validation-for="User.Username" class="text-danger" style="font-size:0.8rem;"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefonszám</label>
+                        <div class="phone-input-wrap">
+                            <select id="phoneDialCode" class="phone-dial-select" onchange="updatePhoneField()">
+                                <option value="+36" data-flag="🇭🇺">🇭🇺 +36</option>
+                                <option value="+43" data-flag="🇦🇹">🇦🇹 +43</option>
+                                <option value="+49" data-flag="🇩🇪">🇩🇪 +49</option>
+                                <option value="+44" data-flag="🇬🇧">🇬🇧 +44</option>
+                                <option value="+33" data-flag="🇫🇷">🇫🇷 +33</option>
+                                <option value="+39" data-flag="🇮🇹">🇮🇹 +39</option>
+                                <option value="+34" data-flag="🇪🇸">🇪🇸 +34</option>
+                                <option value="+48" data-flag="🇵🇱">🇵🇱 +48</option>
+                                <option value="+40" data-flag="🇷🇴">🇷🇴 +40</option>
+                                <option value="+421" data-flag="🇸🇰">🇸🇰 +421</option>
+                                <option value="+420" data-flag="🇨🇿">🇨🇿 +420</option>
+                                <option value="+380" data-flag="🇺🇦">🇺🇦 +380</option>
+                                <option value="+1" data-flag="🇺🇸">🇺🇸 +1</option>
+                            </select>
+                            <input type="tel"
+                                   id="phoneLocal"
+                                   class="form-control phone-local-input"
+                                   placeholder="30 123 4567"
+                                   autocomplete="tel-national"
+                                   oninput="updatePhoneField();formatLocalPhone(this)" />
+                        </div>
+                        <input asp-for="User.Phone" type="hidden" id="User_Phone" />
+                        <span asp-validation-for="User.Phone" class="text-danger" style="font-size:0.8rem;"></span>
+                    </div>
+                </div>
+
+                <div class="profile-avatar-wrap" style="flex-shrink:0;">
+                    <span class="profile-avatar-label">Profilkép</span>
+                    <div class="profile-avatar-frame">
+                        <img id="currentProfileImg"
+                             src="@(Model.User.ProfileImageUrl ?? "/images/avatar.png")"
+                             alt="Profilkép" />
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="mb-3">
-            <label asp-for="User.Username" class="form-label">Felhasználónév</label>
-            <input asp-for="User.Username" class="form-control" />
-            <span asp-validation-for="User.Username" class="text-danger"></span>
-        </div>
+            <hr class="section-divider" />
 
-        <div class="mb-3">
-            <label asp-for="User.Phone" class="form-label">Telefonszám</label>
-            <input asp-for="User.Phone" class="form-control" />
-            <span asp-validation-for="User.Phone" class="text-danger"></span>
-        </div>
+            <div class="mb-3 file-input-wrap">
+                <label class="form-label">Új profilkép feltöltése</label>
+                <input asp-for="ProfileImageFile" type="file" accept="image/*"
+                       class="form-control" onchange="previewProfileImage(this)" />
+                <div class="form-text">Nem kötelező — csak akkor töltsön fel képet, ha meg kívánja változtatni a profilképét.</div>
+            </div>
 
-        <div class="mb-3">
-            <label class="form-label">Új Profilkép Feltöltése</label>
-            <input asp-for="ProfileImageFile" type="file" accept="image/*" class="form-control" onchange="previewProfileImage(this)" />
-            <div class="form-text">Nem kötelező.Kérem válasszon egy képet,amennyiben szeretné megváltoztatni a profilképét!</div>
-        </div>
+            <div class="mb-4">
+                <label asp-for="User.Bio" class="form-label">Rövid leírás</label>
+                <textarea asp-for="User.Bio" class="form-control" rows="4"
+                          placeholder="Írjon pár szót magáról…"></textarea>
+            </div>
 
-        <div class="mb-3">
-            <label asp-for="User.Bio" class="form-label">Leírás</label>
-            <textarea asp-for="User.Bio" class="form-control" rows="4"></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Mentés</button>
-        <a class="btn btn-secondary ms-2" asp-page="/Index">Mégsem</a>
-    </form>
-}
+            <div class="profile-actions">
+                <button type="submit" class="btn-primary">Mentés</button>
+                <a class="btn-secondary" asp-page="/Index">Mégsem</a>
+            </div>
+        </form>
+    }
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -77,10 +338,39 @@ else
             if (!file) return;
             var img = document.getElementById('currentProfileImg');
             var reader = new FileReader();
-            reader.onload = function (e) {
-                img.src = e.target.result;
-            };
+            reader.onload = function (e) { img.src = e.target.result; };
             reader.readAsDataURL(file);
         }
+
+        function updatePhoneField() {
+            var dial = document.getElementById('phoneDialCode').value;
+            var local = document.getElementById('phoneLocal').value.replace(/\s/g, '');
+            document.getElementById('User_Phone').value = local ? dial + local : '';
+        }
+
+        function formatLocalPhone(input) {
+            var digits = input.value.replace(/\D/g, '');
+            var parts = [];
+            if (digits.length > 0) parts.push(digits.substring(0, 2));
+            if (digits.length > 2) parts.push(digits.substring(2, 5));
+            if (digits.length > 5) parts.push(digits.substring(5, 9));
+            input.value = parts.join(' ');
+        }
+
+        (function initPhone() {
+            var stored = document.getElementById('User_Phone').value;
+            if (!stored) return;
+            var select = document.getElementById('phoneDialCode');
+            var matched = false;
+            Array.from(select.options).sort((a, b) => b.value.length - a.value.length).forEach(function(opt) {
+                if (!matched && stored.startsWith(opt.value)) {
+                    select.value = opt.value;
+                    var local = stored.substring(opt.value.length);
+                    document.getElementById('phoneLocal').value = local;
+                    formatLocalPhone(document.getElementById('phoneLocal'));
+                    matched = true;
+                }
+            });
+        })();
     </script>
 }

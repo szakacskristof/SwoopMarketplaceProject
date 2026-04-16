@@ -75,7 +75,7 @@ else
                             var url = images[i];
                             var active = i == 0 ? "active" : "";
                             <div class="carousel-item @active" style="height:100%;">
-                                <img src="@url" class="d-block w-100" style="height:100%;object-fit:cover;display:block" alt="listing image @i" />
+                                <img src="@url" class="d-block w-100" data-index="@i" style="height:100%;object-fit:cover;display:block;cursor:zoom-in" alt="listing image @i" />
                             </div>
                         }
                     </div>
@@ -99,11 +99,45 @@ else
                         {
                             var url = images[i];
                             <button type="button" class="btn p-0 border-0" data-bs-target="#listingCarousel" data-bs-slide-to="@i" style="flex:0 0 auto;">
-                                <img src="@url" alt="thumb @i" style="width:88px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e6eef8" />
+                                <img src="@url" alt="thumb @i" data-index="@i" style="width:88px;height:64px;object-fit:cover;border-radius:8px;border:1px solid #e6eef8;cursor:zoom-in" />
                             </button>
                         }
                     </div>
                 }
+
+                @* Modal (lightbox) with its own carousel - kept separate so sliding is preserved inside modal *@
+                <div class="modal fade" id="listingModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content bg-transparent border-0">
+                            @* visible close button so user can always dismiss the modal *@
+                            <button type="button" id="listingModalClose" title="Close" style="position:absolute;right:12px;top:12px;z-index:1201;background:rgba(0,0,0,0.55);color:#fff;border:0;border-radius:6px;padding:6px 10px;font-size:18px;cursor:pointer">×</button>
+                            <div class="modal-body p-0">
+                                <div id="listingModalCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true">
+                                    <div class="carousel-inner" style="background:transparent;">
+                                        @for (int i = 0; i < images.Count; i++)
+                                        {
+                                            var url = images[i];
+                                            var active = i == 0 ? "active" : "";
+                                            <div class="carousel-item @active" style="text-align:center;">
+                                                <img src="@url" class="d-block mx-auto" style="max-height:80vh;width:auto;max-width:100%;object-fit:contain;display:block" alt="listing modal image @i" />
+                                            </div>
+                                        }
+                                    </div>
+
+                                    @if (images.Count > 1)
+                                    {
+                                        <button class="carousel-control-prev" type="button" data-bs-target="#listingModalCarousel" data-bs-slide="prev" aria-label="Previous">
+                                            <span class="carousel-control-prev-icon" aria-hidden="true" style="filter:invert(1)"></span>
+                                        </button>
+                                        <button class="carousel-control-next" type="button" data-bs-target="#listingModalCarousel" data-bs-slide="next" aria-label="Next">
+                                            <span class="carousel-control-next-icon" aria-hidden="true" style="filter:invert(1)"></span>
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div style="padding:16px;">
                     <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#111">@l.Title</h1>
@@ -185,6 +219,58 @@ else
                     if (e.key === 'ArrowLeft') bootstrap.Carousel.getInstance(carouselEl).prev();
                     if (e.key === 'ArrowRight') bootstrap.Carousel.getInstance(carouselEl).next();
                 });
+
+                // Lightbox modal behavior
+                var modalEl = document.getElementById('listingModal');
+                var modalCarouselEl = document.getElementById('listingModalCarousel');
+                if (!modalEl || !modalCarouselEl) return;
+
+                // disable dark backdrop and keep keyboard enabled
+                var modal = new bootstrap.Modal(modalEl, { backdrop: false, keyboard: true });
+
+                function modalCarouselInstance() {
+                    // ensure touch/swipe and wrap are enabled for the modal carousel
+                    return bootstrap.Carousel.getOrCreateInstance(modalCarouselEl, { touch: true, wrap: true, interval: false });
+                }
+
+                // Open modal when clicking a main carousel image
+                document.querySelectorAll('#listingCarousel .carousel-item img').forEach(function (img) {
+                    img.addEventListener('click', function () {
+                        var idx = parseInt(this.getAttribute('data-index') || '0', 10);
+                        modal.show();
+                        // ensure modal DOM is visible before moving to slide
+                        setTimeout(function () { modalCarouselInstance().to(idx); }, 120);
+                    });
+                });
+
+                // Open modal when clicking a thumbnail button/image
+                document.querySelectorAll('[data-bs-slide-to]').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        var idx = parseInt(this.getAttribute('data-bs-slide-to') || '0', 10);
+                        modal.show();
+                        setTimeout(function () { modalCarouselInstance().to(idx); }, 120);
+                    });
+                });
+
+                // sync arrow keys for modal carousel
+                modalEl.addEventListener('keydown', function (e) {
+                    if (e.key === 'ArrowLeft') modalCarouselInstance().prev();
+                    if (e.key === 'ArrowRight') modalCarouselInstance().next();
+                });
+
+                // close button inside modal
+                var modalCloseBtn = document.getElementById('listingModalClose');
+                if (modalCloseBtn) {
+                    modalCloseBtn.addEventListener('click', function () { modal.hide(); });
+                }
+
+                // allow clicking outside modal-content (on modal element) to close when backdrop is disabled
+                modalEl.addEventListener('click', function (e) {
+                    if (e.target === modalEl) {
+                        modal.hide();
+                    }
+                });
+
             })();
         </script>
     }
