@@ -1,0 +1,355 @@
+﻿@page "/Messages/Conversation/{to:long}/{listing:long?}"
+
+@model SwoopMarketplaceProjectFrontend.Pages.Messages.ConversationModel
+@using SwoopMarketplaceProjectFrontend.Services
+@using System.Security.Cryptography
+@using System.Text
+@inject AuthSession AuthSession
+
+<style>
+    .chat-wrap {
+        background: #fff;
+        padding: 16px;
+        border-radius: 12px;
+        max-width: 900px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+
+    .messages-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 65vh;
+        overflow-y: auto;
+        padding: 8px;
+    }
+
+    .message-row {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        width: 100%;
+    }
+
+    /* Other person's messages - left aligned */
+    .message-row.other {
+        justify-content: flex-start;
+    }
+
+    .message-row.other .avatar {
+        order: 1;
+    }
+
+    .message-row.other .bubble {
+        order: 2;
+    }
+
+    /* My messages - right aligned */
+    .message-row.mine {
+        justify-content: flex-end;
+    }
+
+    .message-row.mine .avatar {
+        order: 2;
+    }
+
+    .message-row.mine .bubble {
+        order: 1;
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #f3f4f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #e5e7eb;
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-break: break-word;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .bubble.other {
+        background: #f1f3f4;
+        color: #1f2937;
+        border-radius: 18px 18px 18px 4px;
+    }
+
+    .bubble.mine {
+        background: #007bff;
+        color: #ffffff;
+        border-radius: 18px 18px 4px 18px;
+    }
+
+    .message-content {
+        font-size: 14px;
+        line-height: 1.4;
+        margin-bottom: 4px;
+    }
+
+    .message-time {
+        font-size: 11px;
+        opacity: 0.7;
+        display: block;
+    }
+
+    .bubble.other .message-time {
+        text-align: left;
+    }
+
+    .bubble.mine .message-time {
+        text-align: right;
+    }
+
+    /* Input section */
+    .input-section {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .input-section .form-control {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 24px;
+        padding: 12px 20px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .input-section .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .send-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-size: 18px;
+    }
+
+    .send-btn:hover {
+        background: #0056b3;
+    }
+
+    .send-btn:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+    }
+
+    /* Header */
+    .chat-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .chat-header .avatar {
+        width: 50px;
+        height: 50px;
+    }
+
+    .chat-header-info h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .chat-header-info .status {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 2px;
+    }
+
+    /* Back button */
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+        margin-bottom: 16px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background-color 0.2s;
+    }
+
+    .back-btn:hover {
+        background-color: #f8f9fa;
+        color: #0056b3;
+    }
+
+    /* Scrollbar styling */
+    .messages-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .messages-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .messages-list::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+
+    .messages-list::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+</style>
+
+<a asp-page="/Messages/Index" class="back-btn">← Vissza az üzenetekhez</a>
+
+<div class="chat-wrap">
+    @if (Model.OtherUser != null)
+    {
+        <div class="chat-header">
+            <div class="avatar">
+                <img src="@(string.IsNullOrWhiteSpace(Model.OtherUser.ProfileImageUrl) ? Model.GetGravatarUrl(Model.OtherUser.Email) : Model.OtherUser.ProfileImageUrl)" 
+                     alt="@(Model.OtherUser.Username ?? Model.OtherUser.Email)" />
+            </div>
+            <div class="chat-header-info">
+                <h3>@(Model.OtherUser.Username ?? Model.OtherUser.Email)</h3>
+                <div class="status">Online</div>
+            </div>
+        </div>
+    }
+
+    @if (Model.Messages == null || !Model.Messages.Any())
+    {
+        <div style="text-align: center; color: #6b7280; padding: 40px;">
+            <p>Még nincsenek üzenetek. Kezdd el a beszélgetést!</p>
+        </div>
+    }
+    else
+    {
+        <div class="messages-list" id="messagesList">
+            @foreach (var m in Model.Messages)
+            {
+                var currentUserId = Model.CurrentUserId ?? -1;
+                var isMine = m.FromUserId == currentUserId;
+                var rowClass = isMine ? "mine" : "other";
+                var bubbleClass = isMine ? "bubble mine" : "bubble other";
+
+                // Get avatars
+                var otherAvatar = !string.IsNullOrWhiteSpace(Model.OtherUser?.ProfileImageUrl) 
+                    ? Model.OtherUser.ProfileImageUrl 
+                    : Model.GetGravatarUrl(Model.OtherUser?.Email);
+
+                var myAvatar = !string.IsNullOrWhiteSpace(Model.CurrentUserProfileImageUrl)
+                    ? Model.CurrentUserProfileImageUrl
+                    : Model.GetGravatarUrl(Model.CurrentUserEmail);
+
+                var avatarSrc = isMine ? myAvatar : otherAvatar;
+
+                <div class="message-row @rowClass">
+                    <div class="avatar">
+                        <img src="@avatarSrc" alt="avatar" />
+                    </div>
+
+                    <div class="@bubbleClass">
+                        <div class="message-content">@m.Content</div>
+                        <span class="message-time">@m.CreatedAt.ToLocalTime().ToString("HH:mm")</span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <form method="post" class="input-section" asp-page-handler="Send">
+        @Html.AntiForgeryToken()
+        <input asp-for="To" type="hidden" />
+        <input asp-for="Listing" type="hidden" />
+        <input asp-for="NewMessage" 
+               class="form-control" 
+               placeholder="Írj üzenetet..." 
+               autocomplete="off" 
+               maxlength="500" 
+               required />
+        <button type="submit" 
+                class="send-btn"
+                title="Küldés">
+            ➤
+        </button>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        // Scroll to bottom on load and after form submission
+        function scrollToBottom() {
+            var messagesList = document.getElementById('messagesList');
+            if (messagesList) {
+                messagesList.scrollTop = messagesList.scrollHeight;
+            }
+        }
+
+        // Scroll to bottom on page load
+        scrollToBottom();
+
+        // Auto-focus input
+        document.addEventListener('DOMContentLoaded', function() {
+            var input = document.querySelector('input[name="NewMessage"]');
+            if (input) {
+                input.focus();
+            }
+        });
+
+        // Submit form on Enter key
+        document.querySelector('input[name="NewMessage"]').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.closest('form').submit();
+            }
+        });
+
+        // Clear input after successful submission (if redirected back to same page)
+        window.addEventListener('pageshow', function() {
+            var input = document.querySelector('input[name="NewMessage"]');
+            if (input && window.location.search.includes('messageSent=true')) {
+                input.value = '';
+                scrollToBottom();
+            }
+        });
+    </script>
+}

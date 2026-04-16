@@ -25,6 +25,7 @@ namespace SwoopMarketplaceProjectFrontend
             builder.Services.AddScoped<ListingViewApi>();
             builder.Services.AddScoped<ListingImageApi>();
             builder.Services.AddScoped<UserApi>();
+            builder.Services.AddScoped<MessageApi>(); // <-- Register MessageApi so PageModels can resolve it
             builder.Services.AddScoped<ReportApi>();
             builder.Services.AddScoped<AdminApi>(); // <-- Registered AdminApi
 

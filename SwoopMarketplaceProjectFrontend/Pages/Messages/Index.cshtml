@@ -1,0 +1,68 @@
+@page
+@model SwoopMarketplaceProjectFrontend.Pages.Messages.IndexModel
+@using SwoopMarketplaceProjectFrontend.Services
+@inject AuthSession AuthSession
+
+<h2>Üzenetek</h2>
+
+<div class="mb-3" style="max-width:720px;">
+    <input id="convSearch" class="form-control" placeholder="Keresés név vagy üzenet alapján..." />
+</div>
+
+@if (Model.Conversations == null || !Model.Conversations.Any())
+{
+    <div class="alert alert-info">Nincs üzeneted még.</div>
+}
+else
+{
+    <div class="list-group" id="conversationsList" style="max-width:720px;">
+        @foreach (var c in Model.Conversations)
+        {
+            var listingPart = c.ListingId.HasValue ? $" (hirdetés #{c.ListingId})" : "";
+            var unreadClass = c.UnreadCount > 0 ? "list-group-item-warning" : "";
+            <a class="list-group-item list-group-item-action d-flex gap-3 align-items-start @unreadClass"
+               asp-page="./Conversation" asp-route-to="@c.OtherUserId" asp-route-listing="@c.ListingId">
+                <img src="@(string.IsNullOrWhiteSpace(c.OtherProfileImageUrl) ? "/images/avatar.png" : c.OtherProfileImageUrl)" 
+                     alt="avatar" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" />
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="font-weight:700">
+                            @c.OtherUserName @Html.Raw(listingPart)
+                        </div>
+                        <div style="text-align:right;font-size:12px;color:#6b7280;">
+                            @c.LastAt.ToLocalTime().ToString("g")
+                        </div>
+                    </div>
+                    <div style="color:#6b7280;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                        @c.LastMessage
+                    </div>
+                </div>
+                @if (c.UnreadCount > 0)
+                {
+                    <div>
+                        <span class="badge bg-danger" style="min-width:28px;padding:6px 8px;font-weight:700;">@c.UnreadCount</span>
+                    </div>
+                }
+            </a>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            var search = document.getElementById('convSearch');
+            if (!search) return;
+            var list = document.getElementById('conversationsList');
+            search.addEventListener('input', function () {
+                var q = search.value.trim().toLowerCase();
+                if (!list) return;
+                var items = Array.from(list.querySelectorAll('.list-group-item'));
+                items.forEach(function (it) {
+                    var text = (it.innerText || it.textContent || '').toLowerCase();
+                    it.style.display = q === '' || text.indexOf(q) !== -1 ? '' : 'none';
+                });
+            });
+        })();
+    </script>
+}
