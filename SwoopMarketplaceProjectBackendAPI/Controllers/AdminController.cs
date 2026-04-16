@@ -26,13 +26,13 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<IActionResult> SetUserRole(long id, [FromBody] RoleRequest req)
         {
             var appUser = await _context.Users.FindAsync(id);
-            if (appUser == null) return NotFound("User not found.");
+            if (appUser == null) return NotFound("Nem találtuk a felhasználót.");
 
             if (string.IsNullOrWhiteSpace(appUser.Email))
-                return BadRequest("User email missing (cannot map to identity user).");
+                return BadRequest("Felhasználó email nem található.");
 
             var identityUser = await _userManager.FindByEmailAsync(appUser.Email);
-            if (identityUser == null) return NotFound("Identity user not found.");
+            if (identityUser == null) return NotFound("Identity felhasználó nem található.");
 
             // remove all current roles and add requested role
             var currentRoles = await _userManager.GetRolesAsync(identityUser);
@@ -40,14 +40,14 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             {
                 var removeResult = await _userManager.RemoveFromRolesAsync(identityUser, currentRoles);
                 if (!removeResult.Succeeded)
-                    return StatusCode(500, "Unable to remove existing roles.");
+                    return StatusCode(500, "Nem sikerült a rang elvétele.");
             }
 
             var addResult = await _userManager.AddToRoleAsync(identityUser, req.Role);
             if (!addResult.Succeeded)
             {
                 var msg = string.Join("; ", addResult.Errors.Select(e => e.Description));
-                return StatusCode(500, $"Unable to add role: {msg}");
+                return StatusCode(500, $"Nem sikerült a rang hozzáadása:{msg}");
             }
 
             return NoContent();

@@ -3,7 +3,9 @@
 @using SwoopMarketplaceProjectFrontend.Services
 @model SwoopMarketplaceProjectFrontend.Pages.Users.MyProfileModel
 @inject AuthSession AuthSession
-
+@{
+    ViewData["Title"] = "Saját Profil";
+}
 <style>
     .profile-card {
         max-width: 720px;
@@ -324,7 +326,7 @@
 
             <div class="profile-actions">
                 <button type="submit" class="btn-primary">Mentés</button>
-                <a class="btn-secondary" asp-page="/Index">Mégsem</a>
+                <a class="btn-secondary" asp-page="/Listings/Index">Mégsem</a>
             </div>
         </form>
     }

@@ -48,7 +48,7 @@ public static class IdentitySeeder
                     Username = "SwoopAdmin1",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "SwoopMarketplace Admin felhasználója",
-                    Phone = "Admin,telefonszámt titkosítva",
+                    Phone = "+36 20 222 2222",
                     ProfileImageUrl = "https://localhost:7000/images/profilepictures/adminpfp.png"
 
                 };
@@ -97,7 +97,7 @@ public static class IdentitySeeder
                     Username = "SwoopOwner",
                     CreatedAt = DateTime.UtcNow,
                     Bio = "SwoopMarketplace tulajdonosa",
-                    Phone = "Tulajdonos,telefonszámt titkosítva",
+                    Phone = "+36 20 111 1111",
                     ProfileImageUrl = "https://localhost:7000/images/profilepictures/ownerpfp.png"
 
                 };

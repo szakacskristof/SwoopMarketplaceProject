@@ -95,11 +95,11 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<ActionResult> UploadListingImage([FromForm] UploadListingImageRequest request)
         {
             if (request.File == null || request.File.Length == 0)
-                return BadRequest("No file uploaded.");
+                return BadRequest("Nincs feltöltött fájl.");
 
             var listing = await _context.Listings.FindAsync(request.ListingId);
             if (listing == null)
-                return BadRequest("Listing not found.");
+                return BadRequest("Nem találtuk a hírdetést.");
 
             var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var imagesDir = Path.Combine(wwwroot, "images");

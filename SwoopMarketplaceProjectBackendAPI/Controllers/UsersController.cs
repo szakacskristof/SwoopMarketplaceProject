@@ -130,11 +130,11 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<IActionResult> PutUser(long id, [FromBody] UserUpdateDto dto)
         {
             if (dto is null)
-                return BadRequest("No data supplied.");
+                return BadRequest("Nincs beérkező adat..");
 
             // if payload contains an Id, ensure it matches route id
             if (dto.Id.HasValue && dto.Id.Value != id)
-                return BadRequest("Id in payload does not match route id.");
+                return BadRequest("Id nem egyezik az útvonallal.");
 
             // load existing user from DB
             var existing = await _context.Users.FindAsync(id);
@@ -162,7 +162,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 var usernameTaken = await _context.Users
                     .AnyAsync(u => u.Id != id && u.Username.ToLower() == dto.Username.ToLower());
                 if (usernameTaken)
-                    return BadRequest("Username already in use.");
+                    return BadRequest("A felhasználónév már használatban van!");
             }
 
             // Validate uniqueness if phone changed (non-empty)
@@ -172,7 +172,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 var phoneTaken = await _context.Users
                     .AnyAsync(u => u.Id != id && u.Phone == dto.Phone);
                 if (phoneTaken)
-                    return BadRequest("Phone number already in use.");
+                    return BadRequest("A telefonszám már használatban van!");
             }
 
             // Validate uniqueness if email changed (non-empty)
@@ -182,7 +182,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 var emailTaken = await _context.Users
                     .AnyAsync(u => u.Id != id && u.Email.ToLower() == dto.Email.ToLower());
                 if (emailTaken)
-                    return BadRequest("Email already in use.");
+                    return BadRequest("Az email már használatban van!");
             }
 
             // Apply only allowed updates - do not overwrite PasswordHash, CreatedAt, or Id
@@ -263,13 +263,13 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<IActionResult> UploadProfilePhoto(long id, [FromForm] UploadProfileImageRequest request)
         {
             if (request?.File == null || request.File.Length == 0)
-                return BadRequest("No file uploaded.");
+                return BadRequest("Nincs feltöltve fájl.");
 
             var file = request.File;
 
             var existing = await _context.Users.FindAsync(id);
             if (existing == null)
-                return NotFound("User not found.");
+                return NotFound("Nem találtuk a felhasználót.");
 
             // resolve caller email from JWT claims
             var callerEmail = User.Claims

@@ -4,6 +4,9 @@
 @using System.Text
 @using SwoopMarketplaceProjectFrontend.Services
 @inject AuthSession AuthSession
+@{
+    ViewData["Title"] = "Mentett Hírdetések";
+}
 
 @functions {
     private static string GravatarUrl(string? email, int size = 64)

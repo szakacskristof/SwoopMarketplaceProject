@@ -72,13 +72,13 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<ActionResult<MessageDto>> PostMessage([FromBody] CreateMessageDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Content))
-                return BadRequest("Invalid payload.");
+                return BadRequest("Hibás adatok.");
 
             var caller = await ResolveCallerAsync();
             if (caller == null) return Forbid();
 
             var toUser = await _context.Users.FindAsync(dto.ToUserId);
-            if (toUser == null) return NotFound("Recipient not found.");
+            if (toUser == null) return NotFound("Nem találtuk a felhasználót.");
 
             var msg = new Message
             {
@@ -168,7 +168,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
             // Validate other exists
             var other = await _context.Users.FindAsync(otherUserId);
-            if (other == null) return NotFound("Other user not found.");
+            if (other == null) return NotFound("Nem találtuk a másik felhasználót.");
 
             try
             {

@@ -127,7 +127,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     }
                 }
 
-                TempData["Message"] = "Listing saved.";
+                TempData["Message"] = "Hírdetés Elmentve.";
                 return RedirectToPage("/Listings/Edit", new { azon = Input.Id });
             }
             catch (HttpRequestException ex)

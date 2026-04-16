@@ -6,6 +6,9 @@
 @using SwoopMarketplaceProjectFrontend.Services
 @inject AuthSession AuthSession
 
+@{
+    ViewData["Title"] = "Hírdetések";
+}
 @functions {
     private static string GravatarUrl(string? email, int size = 64)
     {
