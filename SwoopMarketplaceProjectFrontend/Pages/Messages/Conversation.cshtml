@@ -199,6 +199,13 @@
         margin-top: 2px;
     }
 
+    .chat-header-info .listing-info {
+        font-size: 13px;
+        color: #007bff;
+        margin-top: 4px;
+        font-weight: 500;
+    }
+
     /* Back button */
     .back-btn {
         display: inline-flex;
@@ -250,7 +257,12 @@
             </div>
             <div class="chat-header-info">
                 <h3>@(Model.OtherUser.Username ?? Model.OtherUser.Email)</h3>
-                <div class="status">Online</div>
+                @if (Model.ListingInfo != null)
+                {
+                    <div class="listing-info">
+                        Hirdetés: @Model.ListingInfo.Title
+                    </div>
+                }
             </div>
         </div>
     }

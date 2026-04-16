@@ -36,6 +36,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
         public string? CurrentUserEmail { get; set; }
         public string? CurrentUserProfileImageUrl { get; set; }
 
+        // listing information if conversation is about a specific listing
+        public MessageApi.ListingDto? ListingInfo { get; set; }
+
         [BindProperty]
         public string NewMessage { get; set; } = "";
 
@@ -90,6 +93,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             var conv = await _msgApi.GetMessagesWithAsync(To, Listing);
             OtherUser = conv.OtherUser;
             Messages = conv.Messages;
+            ListingInfo = conv.Listing;
 
             // Set current user email
             CurrentUserEmail = _auth.GetEmail();

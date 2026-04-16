@@ -63,6 +63,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             public System.DateTime LastAt { get; set; }
             public int UnreadCount { get; set; }
             public long? ListingId { get; set; }
+            public string? ListingTitle { get; set; }
         }
 
         public class MessageDto
@@ -85,10 +86,17 @@ namespace SwoopMarketplaceProjectFrontend.Services
             public string? ProfileImageUrl { get; set; }
         }
 
+        public class ListingDto
+        {
+            public long Id { get; set; }
+            public string Title { get; set; } = "";
+        }
+
         public class ConversationMessagesDto
         {
             public OtherUserDto? OtherUser { get; set; }
             public List<MessageDto> Messages { get; set; } = new();
+            public ListingDto? Listing { get; set; }
         }
     }
 }

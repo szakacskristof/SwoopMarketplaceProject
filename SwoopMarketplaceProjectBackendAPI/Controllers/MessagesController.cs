@@ -49,6 +49,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             public DateTime LastAt { get; set; }
             public int UnreadCount { get; set; }
             public long? ListingId { get; set; }
+            public string? ListingTitle { get; set; }
         }
 
         // Helper to resolve caller application user by email claim
@@ -135,6 +136,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             var result = grouped.Select(g =>
             {
                 var other = _context.Users.FirstOrDefault(u => u.Id == g.OtherUserId);
+                var listing = g.ListingId.HasValue ? _context.Listings.FirstOrDefault(l => l.Id == g.ListingId.Value) : null;
+                
                 return new ConversationDto
                 {
                     OtherUserId = g.OtherUserId,
@@ -144,7 +147,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     LastMessage = g.LastMessage?.Content ?? "",
                     LastAt = g.LastMessage?.CreatedAt ?? DateTime.MinValue,
                     UnreadCount = g.Unread,
-                    ListingId = g.ListingId
+                    ListingId = g.ListingId,
+                    ListingTitle = listing?.Title
                 };
             })
             .OrderByDescending(c => c.LastAt)
@@ -201,6 +205,9 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                // Get listing title if listingId is provided
+                var listing = listingId.HasValue ? await _context.Listings.FindAsync(listingId.Value) : null;
+
                 return Ok(new
                 {
                     OtherUser = new
@@ -210,7 +217,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                         other.Email,
                         other.ProfileImageUrl
                     },
-                    Messages = messages
+                    Messages = messages,
+                    Listing = listing != null ? new { listing.Id, listing.Title } : null
                 });
             }
             catch (MySqlConnector.MySqlException ex)

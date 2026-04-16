@@ -1,67 +1,144 @@
-@page
+﻿@page
 @model SwoopMarketplaceProjectFrontend.Pages.Messages.IndexModel
 @using SwoopMarketplaceProjectFrontend.Services
 @inject AuthSession AuthSession
 
-<h2>�zenetek</h2>
+<div style="padding:8px 12px;max-width:900px;margin:0 auto;">
+    <h2 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222;">Üzenetek</h2>
 
-<div class="mb-3" style="max-width:720px;">
-    <input id="convSearch" class="form-control" placeholder="Keres�s n�v vagy �zenet alapj�n..." />
-</div>
-
-@if (Model.Conversations == null || !Model.Conversations.Any())
-{
-    <div class="alert alert-info">Nincs �zeneted m�g.</div>
-}
-else
-{
-    <div class="list-group" id="conversationsList" style="max-width:720px;">
-        @foreach (var c in Model.Conversations)
-        {
-            var listingPart = c.ListingId.HasValue ? $" (hirdet�s #{c.ListingId})" : "";
-            var unreadClass = c.UnreadCount > 0 ? "list-group-item-warning" : "";
-            <a class="list-group-item list-group-item-action d-flex gap-3 align-items-start @unreadClass"
-               asp-page="./Conversation" asp-route-to="@c.OtherUserId" asp-route-listing="@c.ListingId">
-                <img src="@(string.IsNullOrWhiteSpace(c.OtherProfileImageUrl) ? "/images/avatar.png" : c.OtherProfileImageUrl)" 
-                     alt="avatar" style="width:48px;height:48px;border-radius:50%;object-fit:cover;" />
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div style="font-weight:700">
-                            @c.OtherUserName @Html.Raw(listingPart)
-                        </div>
-                        <div style="text-align:right;font-size:12px;color:#6b7280;">
-                            @c.LastAt.ToLocalTime().ToString("g")
-                        </div>
-                    </div>
-                    <div style="color:#6b7280;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                        @c.LastMessage
-                    </div>
-                </div>
-                @if (c.UnreadCount > 0)
-                {
-                    <div>
-                        <span class="badge bg-danger" style="min-width:28px;padding:6px 8px;font-weight:700;">@c.UnreadCount</span>
-                    </div>
-                }
-            </a>
-        }
+    <div style="margin-bottom:20px;">
+        <input id="convSearch"
+               class="form-control"
+               placeholder="Keresés név vagy üzenet alapján..."
+               style="max-width:400px;border-radius:8px;" />
     </div>
-}
+
+    @if (Model.Conversations == null || !Model.Conversations.Any())
+    {
+        <div style="text-align:center;padding:60px 20px;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+            <div style="font-size:48px;margin-bottom:20px;opacity:0.6;">📭</div>
+            <h3 style="font-size:20px;font-weight:600;color:#374151;margin-bottom:12px;">Még nincsenek üzeneteid</h3>
+            <p style="color:#6b7280;margin-bottom:24px;">Kezdj el beszélgetni más felhasználókkal! Írj üzenetet egy hirdetés alatt.</p>
+            <a asp-page="/Listings/Index"
+               style="display:inline-block;padding:12px 24px;background:#6c5ce7;color:white;text-decoration:none;border-radius:8px;font-weight:600;">
+                Hirdetések böngészése
+            </a>
+        </div>
+    }
+    else
+    {
+        <div id="conversationsList" style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;">
+            @foreach (var c in Model.Conversations)
+            {
+                var isUnread = c.UnreadCount > 0;
+                var unreadStyle = isUnread ? "background:#fff7ed;border-left:4px solid #ff6b35;" : "";
+                var listingTitle = !string.IsNullOrWhiteSpace(c.ListingTitle) ? c.ListingTitle : null;
+
+                <a asp-page="./Conversation"
+                   asp-route-to="@c.OtherUserId"
+                   asp-route-listing="@c.ListingId"
+                   style="display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid #f1f3f4;text-decoration:none;color:inherit;transition:background 0.2s;@unreadStyle"
+                   onmouseover="this.style.background='#f8f9fa'"
+                   onmouseout="this.style.background='@(isUnread ? "#fff7ed" : "#fff")'">
+
+                    <img src="@(string.IsNullOrWhiteSpace(c.OtherProfileImageUrl) ? "/images/avatar.png" : c.OtherProfileImageUrl)"
+                         alt="@c.OtherUserName profilkép"
+                         style="width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #e5e7eb;" />
+
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:4px;">
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <h4 style="margin:0;font-size:16px;font-weight:700;color:#1f2937;">@c.OtherUserName</h4>
+                                @if (!string.IsNullOrWhiteSpace(listingTitle))
+                                {
+                                    <span style="background:#6c5ce7;color:white;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">
+                                        @listingTitle
+                                    </span>
+                                }
+                            </div>
+                            <div style="font-size:12px;color:#6b7280;white-space:nowrap;">
+                                @{
+                                    var timeAgo = DateTime.Now - c.LastAt.ToLocalTime();
+                                    var timeText = timeAgo.TotalDays >= 1
+                                    ? c.LastAt.ToLocalTime().ToString("MM/dd")
+                                    : timeAgo.TotalHours >= 1
+                                    ? $"{(int)timeAgo.TotalHours}h"
+                                    : $"{(int)timeAgo.TotalMinutes}m";
+                                }
+                                @timeText
+                            </div>
+                        </div>
+
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <div style="color:#6b7280;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">
+                                @if (string.IsNullOrWhiteSpace(c.LastMessage))
+                                {
+                                    <em>Új beszélgetés...</em>
+                                }
+                                else
+                                {
+                                    @c.LastMessage
+                                }
+                            </div>
+
+                            @if (isUnread)
+                            {
+                                <div style="background:#ff6b35;color:white;padding:4px 8px;border-radius:12px;font-size:11px;font-weight:700;margin-left:8px;">
+                                    @if (c.UnreadCount == 1)
+                                    {
+                                        <span>1 új</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@c.UnreadCount új</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+</div>
 
 @section Scripts {
     <script>
         (function () {
             var search = document.getElementById('convSearch');
             if (!search) return;
+
             var list = document.getElementById('conversationsList');
+            if (!list) return;
+
             search.addEventListener('input', function () {
-                var q = search.value.trim().toLowerCase();
-                if (!list) return;
-                var items = Array.from(list.querySelectorAll('.list-group-item'));
-                items.forEach(function (it) {
-                    var text = (it.innerText || it.textContent || '').toLowerCase();
-                    it.style.display = q === '' || text.indexOf(q) !== -1 ? '' : 'none';
+                var query = search.value.trim().toLowerCase();
+                var items = Array.from(list.querySelectorAll('a'));
+
+                items.forEach(function (item) {
+                    var text = (item.innerText || item.textContent || '').toLowerCase();
+                    var shouldShow = query === '' || text.indexOf(query) !== -1;
+                    item.style.display = shouldShow ? 'flex' : 'none';
                 });
+
+                // Show/hide empty state
+                var visibleItems = items.filter(function(item) {
+                    return item.style.display !== 'none';
+                });
+
+                var existingEmpty = document.querySelector('.search-empty');
+
+                if (query && visibleItems.length === 0 && !existingEmpty) {
+                    var emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'search-empty';
+                    emptyDiv.style.cssText = 'text-align:center;padding:40px;color:#6b7280;';
+                    emptyDiv.innerHTML = '<div style="font-size:32px;margin-bottom:12px;">🔍</div>' +
+                                       '<h3>Nincs találat</h3>' +
+                                       '<p>Nem találtunk beszélgetést: "<strong>' + query + '</strong>"</p>';
+                    list.appendChild(emptyDiv);
+                } else if ((query === '' || visibleItems.length > 0) && existingEmpty) {
+                    existingEmpty.remove();
+                }
             });
         })();
     </script>
