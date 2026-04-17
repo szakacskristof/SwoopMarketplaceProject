@@ -332,6 +332,40 @@
     }
 </div>
 
+@* New: user's listings section with the same visual style *@
+<div class="profile-card" style="margin-top:1.5rem;">
+    <h2>Saját hirdetések</h2>
+
+    @if (Model.UserListings == null || !Model.UserListings.Any())
+    {
+        <div class="alert alert-warning">Még nem adott fel hirdetést.</div>
+    }
+    else
+    {
+        <div id="myListingsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start;">
+            @foreach (var item in Model.UserListings)
+            {
+                var n = item.Listing;
+                var imageUrl = (n.ImageUrls != null && n.ImageUrls.Count > 0) ? n.ImageUrls[0] : "/images/placeholder.png";
+                <div class="listing-card"
+                     style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
+                    <div style="height:160px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');"></div>
+                    <div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;">
+                        <div style="font-weight:700;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a1a2e;">
+                            @n.Title
+                        </div>
+                        <div style="color:#6b7280;font-size:13px;">@n.CreatedAt.ToString("yyyy-MM-dd")</div>
+                        <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;">
+                            <div style="font-weight:800;color:#4c51bf;">@n.Price.ToString().Split(',')[0] Ft</div>
+                            <a asp-page="/Listings/Details" asp-route-azon="@n.Id" class="btn-primary">Megtekintés</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>

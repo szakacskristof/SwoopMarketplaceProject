@@ -3,6 +3,7 @@
 @using System.Text
 @inject AuthSession AuthSession
 @inject UserApi UserApi
+@inject MessageApi MessageApi
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -253,10 +254,31 @@
                 @* Left nav links *@
                 @if (AuthSession.IsSignedIn)
                 {
+                    var unreadTotal = 0;
+                    try
+                    {
+                        var convs = await MessageApi.GetConversationsAsync();
+                        if (convs != null)
+                        {
+                            foreach (var c in convs) { unreadTotal += c.UnreadCount; }
+                        }
+                    }
+                    catch
+                    {
+                        // ignore errors retrieving conversations so layout still renders
+                        unreadTotal = 0;
+                    }
+
                     <div class="swoop-nav-links">
                         <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Index">Hirdetések</a>
                         <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Saved">Mentett</a>
-                        <a class="swoop-nav-link" asp-area="" asp-page="/Messages/Index">Üzenetek</a>
+                        <a class="swoop-nav-link" asp-area="" asp-page="/Messages/Index">
+                            Üzenetek
+                            @if (unreadTotal > 0)
+                            {
+                                <span class="swoop-badge swoop-badge-user ms-2">@unreadTotal</span>
+                            }
+                        </a>
                     </div>
                 }
 

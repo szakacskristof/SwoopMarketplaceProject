@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using SwoopMarketplaceProjectFrontend.Dtos;
 
@@ -166,7 +167,21 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
         public async Task DeleteAsync(int azon)
         {
-            var r = await _f.CreateClient("SwoopApi").DeleteAsync($"api/Listings/{azon}");
+            var client = _f.CreateClient("SwoopApi");
+
+            // Ensure Bearer token is attached when available (prevents 403 from protected API endpoints)
+            var token = _auth.GetToken();
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            }
+
+            var r = await client.DeleteAsync($"api/Listings/{azon}");
+
+            // Treat "NotFound" as success (idempotent delete) so frontend won't show the raw 404 error message.
+            if (r.StatusCode == HttpStatusCode.NotFound)
+                return;
+
             r.EnsureSuccessStatusCode();
         }
     }

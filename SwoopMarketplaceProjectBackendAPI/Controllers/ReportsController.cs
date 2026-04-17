@@ -99,6 +99,26 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
+        // DELETE: api/Reports/by-listing/5
+        // Delete all reports that reference a given listing.
+        [HttpDelete("by-listing/{listingId:long}")]
+        public async Task<IActionResult> DeleteReportsByListing(long listingId)
+        {
+            var reports = await _context.Reports
+                .Where(r => r.ListingId == listingId)
+                .ToListAsync();
+
+            if (!reports.Any())
+            {
+                return NotFound();
+            }
+
+            _context.Reports.RemoveRange(reports);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         private bool ReportExists(long id)
         {
             return _context.Reports.Any(e => e.ReportId == id);

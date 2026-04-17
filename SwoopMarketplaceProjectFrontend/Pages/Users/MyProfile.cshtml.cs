@@ -11,11 +11,13 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
     {
         private readonly UserApi _userApi;
         private readonly AuthSession _auth;
+        private readonly ListingApi _listingApi;
 
-        public MyProfileModel(UserApi userApi, AuthSession auth)
+        public MyProfileModel(UserApi userApi, AuthSession auth, ListingApi listingApi)
         {
             _userApi = userApi;
             _auth = auth;
+            _listingApi = listingApi;
         }
 
         [BindProperty]
@@ -27,6 +29,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
 
         public string? Message { get; set; }
         public string? Error { get; set; }
+
+        // User's own listings (display on the page)
+        public List<ListingWithOwnerDto>? UserListings { get; set; }
 
         public async Task<IActionResult> OnGetAsync()
         {
@@ -43,6 +48,19 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
                 return NotFound();
 
             User = u;
+
+            // Load all listings with owner info, then filter for this user
+            try
+            {
+                var all = await _listingApi.GetAllWithOwnersAsync();
+                UserListings = all.Where(l => l.Listing.UserId == User.Id).ToList();
+            }
+            catch
+            {
+                // ignore listing load errors; keep profile usable
+                UserListings = new List<ListingWithOwnerDto>();
+            }
+
             return Page();
         }
 

@@ -31,5 +31,12 @@ namespace SwoopMarketplaceProjectFrontend.Services
             var r = await _f.CreateClient("SwoopApi").DeleteAsync($"api/Reports/{azon}");
             r.EnsureSuccessStatusCode();
         }
+
+        // NEW: delete all reports for a listing
+        public async Task DeleteByListingAsync(long listingId)
+        {
+            var r = await _f.CreateClient("SwoopApi").DeleteAsync($"api/Reports/by-listing/{listingId}");
+            r.EnsureSuccessStatusCode();
+        }
     }
 }

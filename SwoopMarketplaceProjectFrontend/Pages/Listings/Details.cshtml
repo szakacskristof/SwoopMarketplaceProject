@@ -267,7 +267,16 @@ else
                             Üzenet küldése
                         </a>
                     }
-                    <a asp-page="./Index" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Vissza</a>
+
+                    @* Show return link to admin when ReturnUrl is present; otherwise fallback to local Index *@
+                    @if (!string.IsNullOrWhiteSpace(Model.ReturnUrl))
+                    {
+                        <a href="@Model.ReturnUrl" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Vissza az admin oldalra</a>
+                    }
+                    else
+                    {
+                        <a asp-page="./Index" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Vissza</a>
+                    }
                 </div>
             </div>
 

@@ -9,6 +9,8 @@ public partial class Report
 
     public long ListingId { get; set; }
 
+    public DateTime ReportedAt { get; set; }
+
     public long UserId { get; set; }
 
     public string Description { get; set; } = null!;

@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SwoopMarketplaceProjectFrontend.Dtos;
@@ -19,6 +22,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             _auth = auth;
             _bookmarkApi = bookmarkApi;
         }
+
         public ListingDto? Listing { get; private set; }
         public string? OwnerEmail { get; private set; }
         public string? OwnerProfileImageUrl { get; private set; }
@@ -26,22 +30,25 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         public string? OwnerUserName { get; private set; }
         public bool CanEdit { get; private set; }
         public bool CanDelete { get; private set; }
-
-        // frontend-only: whether current user bookmarked this listing
         public bool IsBookmarked { get; private set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? ReturnUrl { get; set; }
 
         public async Task<IActionResult> OnGetAsync(int azon)
         {
             if (azon <= 0)
-               return NotFound();
+                return NotFound();
+
             var lw = await _api.GetByAzonWithOwnerAsync(azon);
             if (lw is null || lw.Listing is null)
                 return NotFound();
+
             Listing = lw.Listing;
             OwnerEmail = lw.OwnerEmail;
             OwnerProfileImageUrl = lw.OwnerProfileImageUrl;
 
-            // Load owner's phone 
+            // Load owner's phone
             try
             {
                 var owner = await _userApi.GetByAzonAsync(Listing.UserId);
@@ -51,11 +58,12 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             {
                 OwnerPhone = null;
             }
+
             // Load owner's username
             try
             {
                 var owner = await _userApi.GetByAzonAsync(Listing.UserId);
-               OwnerUserName = owner?.Username;
+                OwnerUserName = owner?.Username;
             }
             catch
             {
@@ -75,7 +83,10 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                     var ids = await _bookmarkApi.GetForCurrentUserAsync();
                     IsBookmarked = ids.Contains(Listing.Id);
                 }
-                catch { IsBookmarked = false; }
+                catch
+                {
+                    IsBookmarked = false;
+                }
             }
 
             return Page();

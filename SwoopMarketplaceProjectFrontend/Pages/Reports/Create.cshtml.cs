@@ -99,6 +99,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
             {
                 ListingId = ListingId,
                 UserId = userId.Value,
+                ReportedAt = DateTime.UtcNow,
                 Description = Input.Description
             };
 

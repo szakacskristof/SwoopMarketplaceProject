@@ -13,7 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 namespace SwoopMarketplaceProjectBackendAPI.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = "User,Admin")]
+    [Authorize(Roles = "User,Admin,Owner,Tulaj")]
     [ApiController]
     public class ListingsController : ControllerBase
     {
@@ -175,9 +175,9 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // PUT: api/Listings/5
-        // Only the owner (or Admin) can update their listing.
+        // Only the owner (or Admin/Owner) can update their listing.
         [HttpPut("{id}")]
-        [Authorize(Roles = "User,Admin")]
+        [Authorize(Roles = "User,Admin,Owner,Tulaj")]
         public async Task<IActionResult> PutListing(long id, Listing listing)
         {
             if (id != listing.Id)
@@ -201,8 +201,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
             var appUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
 
-            // Allow Admins even if they don't have a row in the custom users table.
-            if (!User.IsInRole("Admin"))
+            // Allow Admins/Owners even if they don't have a row in the custom users table.
+            if (!User.IsInRole("Admin") && !User.IsInRole("Owner") && !User.IsInRole("Tulaj"))
             {
                 if (appUser is null)
                     return Forbid();
@@ -240,7 +240,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
         // POST: api/Listings
         [HttpPost]
-        [Authorize(Roles = "User,Admin")]
+        [Authorize(Roles = "User,Admin,Owner,Tulaj")]
         public async Task<ActionResult<Listing>> PostListing(Listing listing)
         {
             var userEmail = User.Claims
@@ -270,7 +270,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
         // DELETE: api/Listings/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "User,Admin")]
+        [Authorize(Roles = "User,Admin,Owner,Tulaj")]
         public async Task<IActionResult> DeleteListing(long id)
         {
             var listing = await _context.Listings.FindAsync(id);
@@ -288,8 +288,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
 
             var appUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == userEmail);
 
-            // Allow Admins to delete even if they don't have a corresponding row in the app users table.
-            if (!User.IsInRole("Admin"))
+            // Allow Admins/Owners to delete even if they don't have a corresponding row in the app users table.
+            if (!User.IsInRole("Admin") && !User.IsInRole("Owner") && !User.IsInRole("Tulaj"))
             {
                 if (appUser is null)
                     return Forbid();

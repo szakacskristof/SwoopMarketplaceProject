@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,10 +35,33 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            // betöltjük az összes adatot (kisméretû projekthez elfogadható)
+            // load everything (small project - acceptable)
             Listings = await _listingApi.GetAllWithOwnersAsync();
             Users = await _userApi.GetAllAsync();
             Reports = await _reportApi.GetAllAsync();
+
+            // Enrich reports with reporter info (email/username).
+            // The backend Reports API currently returns only the raw report record,
+            // so we use the UserApi to look up the reporting user's public info.
+            if (Reports?.Any() == true)
+            {
+                foreach (var r in Reports)
+                {
+                    try
+                    {
+                        var user = await _userApi.GetByAzonAsync(r.UserId);
+                        if (user != null)
+                        {
+                            r.ReporterEmail = user.Email;
+                            r.ReporterUsername = user.Username;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore enrichment errors to keep admin page usable
+                    }
+                }
+            }
         }
 
         public async Task<IActionResult> OnPostDeleteListingAsync(int azon)
@@ -63,7 +87,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                TempData["Error"] = ex.Message; 
+
             }
             return RedirectToPage(new { SelectedTab = "users" });
         }
@@ -79,6 +104,28 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             {
                 TempData["Error"] = ex.Message;
             }
+            return RedirectToPage(new { SelectedTab = "reports" });
+        }
+
+        // NEW: delete both listing and its report
+        public async Task<IActionResult> OnPostDeleteListingAndReportAsync(int listingId, long reportId)
+        {
+            try
+            {
+                // Delete listing first (requires auth header in ListingApi)
+                await _listingApi.DeleteAsync(listingId);
+
+                // Delete any report(s) referencing that listing.
+                // Use new API that deletes by listing id to avoid NotFound when a single report id is stale.
+                await _reportApi.DeleteByListingAsync(listingId);
+
+                TempData["Message"] = "Hirdetés és report törölve.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+
             return RedirectToPage(new { SelectedTab = "reports" });
         }
 

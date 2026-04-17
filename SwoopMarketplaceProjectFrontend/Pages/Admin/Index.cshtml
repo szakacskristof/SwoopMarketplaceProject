@@ -47,15 +47,12 @@
                             <td>@item.OwnerEmail</td>
                             <td>@item.Listing.Price</td>
                             <td>
-                                @* View (opens modal) *@
                                 <button class="btn btn-sm btn-info me-1" type="button" data-bs-toggle="modal" data-bs-target="#modal-listing-@item.Listing.Id">
                                     Megtekintés
                                 </button>
 
-                                @* Edit (link to existing edit page) *@
                                 <a asp-page="/Listings/Edit" asp-route-azon="@item.Listing.Id" class="btn btn-sm btn-warning me-1">Szerkesztés</a>
 
-                                @* Delete (existing) *@
                                 <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Törölni szeretnéd a hirdetést?');">
                                     @Html.AntiForgeryToken()
                                     <input type="hidden" name="azon" value="@item.Listing.Id" />
@@ -64,7 +61,6 @@
                             </td>
                         </tr>
 
-                        @* Modal for viewing listing details *@
                         <div class="modal fade" id="modal-listing-@item.Listing.Id" tabindex="-1" aria-labelledby="modalLabel-@item.Listing.Id" aria-hidden="true">
                             <div class="modal-dialog modal-lg modal-dialog-centered">
                                 <div class="modal-content">
@@ -141,7 +137,6 @@
                                     <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">Töröl</button>
                                 </form>
 
-                                @* Csak Tulaj/Owner láthatja a szerep beállító gombot *@
                                 @if (AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
                                 {
                                     var current = (u.Roles?.FirstOrDefault() ?? "User");
@@ -182,6 +177,8 @@
                 <thead>
                     <tr>
                         <th>Leírás</th>
+                        <th>Jelentette</th>
+                        <th>Dátum</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -189,11 +186,28 @@
                     @foreach (var r in Model.Reports)
                     {
                         <tr>
-                            <td>@r.Description</td>
+                            <td style="max-width:45ch;white-space:normal;overflow-wrap:break-word;">@r.Description</td>
+                            <td>@(string.IsNullOrWhiteSpace(r.ReporterUsername) ? (r.ReporterEmail ?? "-") : r.ReporterUsername)</td>
+                            <td>@(r.ReportedAt?.ToString("yyyy-MM-dd") ?? "-")</td>
                             <td>
+                                <a asp-page="/Listings/Details"
+                                   asp-route-azon="@r.ListingId"
+                                   asp-route-returnUrl="@(Url.Page("/Admin/Index", new { SelectedTab = "reports" }))"
+                                   class="btn btn-sm btn-info me-1">
+                                    Megnyit
+                                </a>
+
                                 <form method="post" asp-page-handler="DeleteReport" class="d-inline">
                                     <input type="hidden" name="id" value="@r.ReportId" />
-                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a reportot?');">Törlés</button>
+                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a reportot?');">Report Törlése</button>
+                                </form>
+
+                                @* NEW: Delete both the reported listing and the report *@
+                                <form method="post" asp-page-handler="DeleteListingAndReport" class="d-inline ms-1" onsubmit="return confirm('Törölni szeretnéd a hirdetést és a hozzá tartozó reportot?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="listingId" value="@r.ListingId" />
+                                    <input type="hidden" name="reportId" value="@r.ReportId" />
+                                    <button class="btn btn-sm btn-danger" type="submit">Hírdetés és report törlése</button>
                                 </form>
                             </td>
                         </tr>
@@ -206,7 +220,6 @@
 
 @section Scripts {
     <script>
-        // URL param vagy server által beállított tab alapján nyitja a fület
         (function () {
             var selected = '@Model.SelectedTab';
             if (selected) {
