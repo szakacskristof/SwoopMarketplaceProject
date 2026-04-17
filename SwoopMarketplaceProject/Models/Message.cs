@@ -11,5 +11,10 @@ namespace SwoopMarketplaceProject.Models
         public string Content { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public bool IsRead { get; set; } = false;
+
+        // Soft-delete per participant: true = that user hid the conversation
+        public bool DeletedBySender { get; set; } = false;
+        public bool DeletedByRecipient { get; set; } = false;
+        public bool IsEdited { get; set; }
     }
 }

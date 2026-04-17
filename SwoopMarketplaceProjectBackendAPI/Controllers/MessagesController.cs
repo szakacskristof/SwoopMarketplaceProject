@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SwoopMarketplaceProject.Models;
@@ -14,11 +14,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly SwoopContext _context;
-
-        public MessagesController(SwoopContext context)
-        {
-            _context = context;
-        }
+        public MessagesController(SwoopContext context) => _context = context;
 
         // DTOs
         public class CreateMessageDto
@@ -37,6 +33,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             public string Content { get; set; } = "";
             public DateTime CreatedAt { get; set; }
             public bool IsRead { get; set; }
+            public bool IsEdited { get; set; } // ✅ Add this line
         }
 
         public class ConversationDto
@@ -72,13 +69,13 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         public async Task<ActionResult<MessageDto>> PostMessage([FromBody] CreateMessageDto dto)
         {
             if (dto == null || string.IsNullOrWhiteSpace(dto.Content))
-                return BadRequest("Hib�s adatok.");
+                return BadRequest("Hibás adatok.");
 
             var caller = await ResolveCallerAsync();
             if (caller == null) return Forbid();
 
             var toUser = await _context.Users.FindAsync(dto.ToUserId);
-            if (toUser == null) return NotFound("Nem tal�ltuk a felhaszn�l�t.");
+            if (toUser == null) return NotFound("Nem találtuk a felhasználót.");
 
             var msg = new Message
             {
@@ -93,7 +90,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context.Messages.Add(msg);
             await _context.SaveChangesAsync();
 
-            var result = new MessageDto
+            return CreatedAtAction(nameof(GetMessagesWith), new { otherUserId = dto.ToUserId }, new MessageDto
             {
                 Id = msg.Id,
                 FromUserId = msg.FromUserId,
@@ -102,13 +99,49 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 Content = msg.Content,
                 CreatedAt = msg.CreatedAt,
                 IsRead = msg.IsRead
-            };
+            });
+        }
 
-            return CreatedAtAction(nameof(GetMessagesWith), new { otherUserId = dto.ToUserId }, result);
+        // DELETE: api/Messages/conversation/{otherUserId}?listingId=...
+        // Soft-deletes the conversation only for the caller.
+        [HttpDelete("conversation/{otherUserId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteConversation(long otherUserId, [FromQuery] long? listingId = null)
+        {
+            var caller = await ResolveCallerAsync();
+            if (caller == null) return Forbid();
+            var myId = caller.Id;
+
+            var query = _context.Messages.Where(m =>
+                (m.FromUserId == myId && m.ToUserId == otherUserId) ||
+                (m.FromUserId == otherUserId && m.ToUserId == myId));
+
+            if (listingId.HasValue)
+                query = query.Where(m => m.ListingId == listingId.Value);
+
+            var messages = await query.ToListAsync();
+
+            foreach (var m in messages)
+            {
+                if (m.FromUserId == myId)
+                    m.DeletedBySender = true;
+                else
+                    m.DeletedByRecipient = true;
+            }
+
+            // Ha mindkét fél törölte → fizikailag töröljük az adatbázisból
+            var toHardDelete = messages
+                .Where(m => m.DeletedBySender && m.DeletedByRecipient)
+                .ToList();
+
+            if (toHardDelete.Any())
+                _context.Messages.RemoveRange(toHardDelete);
+
+            await _context.SaveChangesAsync();
+            return NoContent();
         }
 
         // GET: api/Messages/conversations
-        // returns latest conversation per other user for caller
         [HttpGet("conversations")]
         [Authorize]
         public async Task<ActionResult> GetConversations()
@@ -117,11 +150,11 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             if (caller == null) return Forbid();
             var myId = caller.Id;
 
-            // gather messages where caller is either sender or recipient
-            var msgs = _context.Messages
-                .Where(m => m.FromUserId == myId || m.ToUserId == myId);
+            // Only include messages NOT soft-deleted by the caller
+            var msgs = _context.Messages.Where(m =>
+                (m.FromUserId == myId && m.ToUserId != myId && !m.DeletedBySender) ||
+                (m.ToUserId == myId && m.FromUserId != myId && !m.DeletedByRecipient));
 
-            // group by conversation partner + optional listing link
             var grouped = await msgs
                 .GroupBy(m => new { Partner = (m.FromUserId == myId ? m.ToUserId : m.FromUserId), m.ListingId })
                 .Select(g => new
@@ -137,7 +170,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             {
                 var other = _context.Users.FirstOrDefault(u => u.Id == g.OtherUserId);
                 var listing = g.ListingId.HasValue ? _context.Listings.FirstOrDefault(l => l.Id == g.ListingId.Value) : null;
-                
+
                 return new ConversationDto
                 {
                     OtherUserId = g.OtherUserId,
@@ -166,16 +199,15 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             if (caller == null) return Forbid();
             var myId = caller.Id;
 
-            // Validate other exists
             var other = await _context.Users.FindAsync(otherUserId);
-            if (other == null) return NotFound("Nem tal�ltuk a m�sik felhaszn�l�t.");
+            if (other == null) return NotFound("Nem találtuk a másik felhasználót.");
 
             try
             {
-                var query = _context.Messages
-                    .Where(m =>
-                        (m.FromUserId == myId && m.ToUserId == otherUserId) ||
-                        (m.FromUserId == otherUserId && m.ToUserId == myId));
+                // Filter out messages soft-deleted by the caller
+                var query = _context.Messages.Where(m =>
+                    ((m.FromUserId == myId && m.ToUserId == otherUserId && !m.DeletedBySender) ||
+                     (m.FromUserId == otherUserId && m.ToUserId == myId && !m.DeletedByRecipient)));
 
                 if (listingId.HasValue)
                     query = query.Where(m => m.ListingId == listingId.Value);
@@ -190,13 +222,14 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                         ListingId = m.ListingId,
                         Content = m.Content,
                         CreatedAt = m.CreatedAt,
-                        IsRead = m.IsRead
+                        IsRead = m.IsRead,
+                        IsEdited = m.IsEdited // ✅ Add this line
                     })
                     .ToListAsync();
 
-                // Mark messages received by caller as read
                 var unread = await _context.Messages
-                    .Where(m => m.ToUserId == myId && m.FromUserId == otherUserId && !m.IsRead && (!listingId.HasValue || m.ListingId == listingId.Value))
+                    .Where(m => m.ToUserId == myId && m.FromUserId == otherUserId && !m.IsRead && !m.DeletedByRecipient
+                        && (!listingId.HasValue || m.ListingId == listingId.Value))
                     .ToListAsync();
 
                 if (unread.Any())
@@ -205,32 +238,22 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                     await _context.SaveChangesAsync();
                 }
 
-                // Get listing title if listingId is provided
                 var listing = listingId.HasValue ? await _context.Listings.FindAsync(listingId.Value) : null;
 
                 return Ok(new
                 {
-                    OtherUser = new
-                    {
-                        other.Id,
-                        other.Username,
-                        other.Email,
-                        other.ProfileImageUrl
-                    },
+                    OtherUser = new { other.Id, other.Username, other.Email, other.ProfileImageUrl },
                     Messages = messages,
                     Listing = listing != null ? new { listing.Id, listing.Title } : null
                 });
             }
             catch (MySqlConnector.MySqlException ex)
             {
-                // Give a clear diagnostic message in development/logging environments,
-                // but do not leak sensitive info in production.
-                // This typically happens when the underlying 'messages' table does not exist.
-                return Problem(detail: "Database error while querying messages: " + ex.Message, statusCode: 500);
+                return Problem(detail: "Database error: " + ex.Message, statusCode: 500);
             }
             catch (Exception ex)
             {
-                return Problem(detail: "Unexpected error while querying messages: " + ex.Message, statusCode: 500);
+                return Problem(detail: "Unexpected error: " + ex.Message, statusCode: 500);
             }
         }
     }

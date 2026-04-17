@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -20,10 +20,7 @@ namespace SwoopMarketplaceProjectBackendAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
             {
@@ -35,42 +32,50 @@ namespace SwoopMarketplaceProjectBackendAPI
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "�rd be: Bearer {token}"
+                    Description = "Írd be: Bearer {token}"
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                {
-                new OpenApiSecurityScheme
-                {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
-                },
-                Array.Empty<string>()
-                }
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                        },
+                        Array.Empty<string>()
+                    }
                 });
+            });
 
+            // ── CORS ── Allow the frontend origin for SignalR and API calls
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("FrontendPolicy", policy =>
+                {
+                    policy
+                        .WithOrigins("https://localhost:7127", "http://localhost:5107")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials(); // required for SignalR
+                });
             });
 
             builder.Services.AddDbContext<SwoopContext>(options =>
-            options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
+                options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
+                    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DefaultConnection"))));
 
-            // Identity DB (MYSQL)
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseMySql(builder.Configuration.GetConnectionString("IdentityConnection"), ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("IdentityConnection"))));
+                options.UseMySql(builder.Configuration.GetConnectionString("IdentityConnection"),
+                    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("IdentityConnection"))));
 
-            // Identity
             builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
             {
-                // keep unique email
                 options.User.RequireUniqueEmail = true;
-
-     
             })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
             builder.Services.AddAuthentication(options =>
             {
-                // KRITIKUS: ha Identity cookie is jelen van, en�lk�l keveredhet a scheme
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
@@ -85,15 +90,32 @@ namespace SwoopMarketplaceProjectBackendAPI
                     ValidIssuer = builder.Configuration["Jwt:Issuer"],
                     ValidAudience = builder.Configuration["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                        Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+                };
+
+                // ── Required for SignalR: read JWT from query string ──
+                // WebSocket connections cannot send headers, so SignalR passes
+                // the token as ?access_token=... in the URL instead.
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
             builder.Services.AddAuthorization();
+            builder.Services.AddSignalR();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -102,10 +124,14 @@ namespace SwoopMarketplaceProjectBackendAPI
 
             app.UseHttpsRedirection();
 
+            // ── CORS must come before Authentication/Authorization ──
+            app.UseCors("FrontendPolicy");
+
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseStaticFiles();
             app.MapControllers();
+            app.MapHub<SwoopMarketplaceProjectBackendAPI.Hubs.ChatHub>("/hubs/chat");
 
             await IdentitySeeder.SeedAsync(app.Services, app.Configuration);
             await CategorySeeder.SeedAsync();
