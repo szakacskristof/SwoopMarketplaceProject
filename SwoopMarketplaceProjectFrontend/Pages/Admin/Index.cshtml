@@ -36,7 +36,7 @@
                         <th>Cím</th>
                         <th>Tulaj</th>
                         <th>Ár</th>
-                        <th></th>
+                        <th style="width:260px;"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,12 +47,64 @@
                             <td>@item.OwnerEmail</td>
                             <td>@item.Listing.Price</td>
                             <td>
-                                <form method="post" asp-page-handler="DeleteListing" class="d-inline">
+                                @* View (opens modal) *@
+                                <button class="btn btn-sm btn-info me-1" type="button" data-bs-toggle="modal" data-bs-target="#modal-listing-@item.Listing.Id">
+                                    Megtekintés
+                                </button>
+
+                                @* Edit (link to existing edit page) *@
+                                <a asp-page="/Listings/Edit" asp-route-azon="@item.Listing.Id" class="btn btn-sm btn-warning me-1">Szerkesztés</a>
+
+                                @* Delete (existing) *@
+                                <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Törölni szeretnéd a hirdetést?');">
+                                    @Html.AntiForgeryToken()
                                     <input type="hidden" name="azon" value="@item.Listing.Id" />
-                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a hirdetést?');">Törlés</button>
+                                    <button class="btn btn-sm btn-danger" type="submit">Törlés</button>
                                 </form>
                             </td>
                         </tr>
+
+                        @* Modal for viewing listing details *@
+                        <div class="modal fade" id="modal-listing-@item.Listing.Id" tabindex="-1" aria-labelledby="modalLabel-@item.Listing.Id" aria-hidden="true">
+                            <div class="modal-dialog modal-lg modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="modalLabel-@item.Listing.Id">@item.Listing.Title</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-5 mb-3">
+                                                <img src="@(item.Listing.ImageUrls.FirstOrDefault() ?? "/images/placeholder.png")" alt="Kép" class="img-fluid rounded" style="width:100%;height:auto;object-fit:cover;" />
+                                            </div>
+                                            <div class="col-md-7">
+                                                <p><strong>Ár:</strong> @item.Listing.Price Ft</p>
+                                                <p><strong>Tulaj:</strong> @item.OwnerEmail</p>
+                                                <p><strong>Kategória:</strong> @(item.Listing.CategoryName ?? "-")</p>
+                                                <p><strong>Állapot:</strong> @item.Listing.Condition</p>
+                                                <p><strong>Hely:</strong> @(item.Listing.Location ?? "-")</p>
+                                                <p><strong>Státusz:</strong> @(item.Listing.Status ?? "-")</p>
+                                                <p><strong>Létrehozva:</strong> @item.Listing.CreatedAt.ToString("yyyy-MM-dd")</p>
+                                                <hr />
+                                                <p><strong>Leírás:</strong></p>
+                                                <div style="white-space:pre-wrap;">@item.Listing.Description</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <a asp-page="/Listings/Edit" asp-route-azon="@item.Listing.Id" class="btn btn-warning">Szerkesztés</a>
+
+                                        <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Biztosan törlöd ezt a hirdetést?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="azon" value="@item.Listing.Id" />
+                                            <button class="btn btn-danger" type="submit">Törlés</button>
+                                        </form>
+
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     }
                 </tbody>
             </table>
@@ -86,7 +138,7 @@
                             <td>
                                 <form method="post" asp-page-handler="DeleteUser" class="d-inline">
                                     <input type="hidden" name="id" value="@u.Id" />
-                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">Törlés</button>
+                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">Töröl</button>
                                 </form>
 
                                 @* Csak Tulaj/Owner láthatja a szerep beállító gombot *@
