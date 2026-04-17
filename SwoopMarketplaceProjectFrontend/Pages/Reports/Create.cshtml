@@ -2,38 +2,38 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Reports.CreateModel
 
 @{
-    ViewData["Title"] = "Hírdetés Jelentése";
+    ViewData["Title"] = "Hirdetés jelentése";
 }
 
 <div style="max-width: 900px; margin: 24px auto; padding: 0 16px;">
-    <h1 style="margin-bottom: 8px;">Report listing</h1>
+    <h1 style="margin-bottom: 8px;">Hirdetés jelentése</h1>
     <p style="color: #6b7280; margin-bottom: 24px;">
-        Report the exact listing below and describe the issue clearly.
+        Kérjük, írd le pontosan, mi a probléma a hirdetéssel, hogy gyorsan ki tudjuk vizsgálni.
     </p>
 
     @if (Model.Listing is null)
     {
         <div class="alert alert-warning">
-            The requested listing could not be found.
+            A kért hirdetés nem található.
         </div>
-        <a asp-page="/Listings/Index" class="btn btn-primary">Back to listings</a>
+        <a asp-page="/Listings/Index" class="btn btn-primary">Vissza a hirdetésekhez</a>
     }
     else
     {
         <div class="card mb-4">
             <div class="card-body">
-                <div class="text-muted mb-2">Listing #@Model.Listing.Id</div>
+                <div class="text-muted mb-2">Hirdetés #@Model.Listing.Id</div>
                 <h2 class="h4 mb-2">@Model.Listing.Title</h2>
                 <div class="mb-2">
-                    <strong>Category:</strong> @(Model.Listing.CategoryName ?? "Unknown")
+                    <strong>Kategória:</strong> @(Model.Listing.CategoryName ?? "Ismeretlen")
                 </div>
                 <div class="mb-2">
-                    <strong>Price:</strong> @Model.Listing.Price.ToString("C")
+                    <strong>Ár:</strong> @Model.Listing.Price.ToString("C")
                 </div>
                 @if (!string.IsNullOrWhiteSpace(Model.Listing.Location))
                 {
                     <div class="mb-2">
-                        <strong>Location:</strong> @Model.Listing.Location
+                        <strong>Helyszín:</strong> @Model.Listing.Location
                     </div>
                 }
                 <div class="text-muted">
@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="mt-3">
-                    <a asp-page="/Listings/Details" asp-route-azon="@Model.Listing.Id">Open listing details</a>
+                    <a asp-page="/Listings/Details" asp-route-azon="@Model.Listing.Id">Hirdetés megnyitása</a>
                 </div>
             </div>
         </div>
@@ -53,14 +53,14 @@
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="mb-3">
-                    <label asp-for="Input.Description" class="form-label">Report description</label>
-                    <textarea asp-for="Input.Description" class="form-control" rows="6" placeholder="Describe why this listing should be reviewed..."></textarea>
+                    <label asp-for="Input.Description" class="form-label">Jelentés leírása</label>
+                    <textarea asp-for="Input.Description" class="form-control" rows="6" placeholder="Írd le, miért kell ezt a hirdetést felülvizsgálni..."></textarea>
                     <span asp-validation-for="Input.Description" class="text-danger"></span>
                 </div>
 
-                <button type="submit" class="btn btn-danger">Submit report</button>
+                <button type="submit" class="btn btn-danger">Jelentés beküldése</button>
                 <a asp-page="/Listings/Details" asp-route-azon="@Model.Listing.Id" class="btn btn-outline-secondary ms-2">
-                    Cancel
+                    Mégse
                 </a>
             </div>
         </form>

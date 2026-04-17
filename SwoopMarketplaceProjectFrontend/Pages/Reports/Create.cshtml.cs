@@ -29,7 +29,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
         public class InputModel
         {
             [Required]
-            [StringLength(2000, MinimumLength = 10, ErrorMessage = "Please enter at least 10 characters.")]
+            [StringLength(2000, MinimumLength = 10, ErrorMessage = "Kérjük, írj legalább 10 karaktert.")]
             public string Description { get; set; } = string.Empty;
         }
 
@@ -91,7 +91,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
 
             if (!userId.HasValue)
             {
-                ModelState.AddModelError(string.Empty, "Unable to resolve the current user.");
+                ModelState.AddModelError(string.Empty, "Nem sikerült azonosítani a jelenlegi felhasználót.");
                 return Page();
             }
 

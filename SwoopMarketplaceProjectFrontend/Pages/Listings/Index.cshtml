@@ -9,47 +9,93 @@
 @{
     ViewData["Title"] = "Hírdetések";
 }
+
 @functions {
     private static string GravatarUrl(string? email, int size = 64)
     {
         if (string.IsNullOrWhiteSpace(email))
-            return $"/images/avatar.png";
+            return "/images/avatar.png";
         using var md5 = MD5.Create();
         var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
         return $"https://www.gravatar.com/avatar/{hash}?s={size}&d=identicon";
     }
-
-    private static string Truncate(string? text, int len = 120)
-    {
-        if (string.IsNullOrEmpty(text)) return string.Empty;
-        return text.Length <= len ? text : text.Substring(0, len).TrimEnd() + "…";
-    }
-
-    private static string Currencies(decimal value)
-    {
-        return value.ToString("C");
-    }
 }
+
+<style>
+    .swoop-search-wrap {
+        position: relative;
+        flex: 1 1 240px;
+        max-width: 340px;
+    }
+
+    .swoop-search-icon {
+        position: absolute;
+        left: 11px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #a0aec0;
+        pointer-events: none;
+        display: flex;
+        align-items: center;
+    }
+
+    .swoop-search-input {
+        width: 100%;
+        padding: 8px 12px 8px 34px;
+        border: 1px solid #e0deff;
+        border-radius: 10px;
+        font-size: 14px;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        color: #1a1a2e;
+        background: #fff;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color .15s, box-shadow .15s;
+    }
+
+        .swoop-search-input:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108,92,231,.1);
+        }
+
+        .swoop-search-input::placeholder {
+            color: #b0b8cc;
+        }
+
+    .listing-card-hidden {
+        display: none !important;
+    }
+</style>
 
 <div style="padding:8px 12px;max-width:1200px;margin:0 auto;">
     <h1 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Swoop</h1>
 
-    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <form method="get" style="display:flex;gap:8px;align-items:center;">
-            <label class="form-label" style="margin:0 8px 0 0;font-weight:700">Szűrés kategória alapján:</label>
-            <select name="CategoryId" onchange="this.form.submit()" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;">
+    @* ── Szűrő + keresősáv ── *@
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+        <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <label class="form-label" style="margin:0;font-weight:700;white-space:nowrap;">Szűrés kategória alapján:</label>
+            <select name="CategoryId" onchange="this.form.submit()" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;font-size:14px;">
                 <option value="">Minden kategória</option>
                 @foreach (var c in Model.Categories)
                 {
                     <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
                 }
             </select>
-            <noscript>
-                <button type="submit" class="btn btn-sm btn-primary ms-2">Szűrés</button>
-            </noscript>
         </form>
 
-      
+        <div class="swoop-search-wrap">
+            <span class="swoop-search-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7" />
+                    <line x1="16.5" y1="16.5" x2="22" y2="22" />
+                </svg>
+            </span>
+            <input id="listingSearch"
+                   class="swoop-search-input"
+                   type="search"
+                   placeholder="Keresés cím, leírás, hely alapján…"
+                   autocomplete="off" />
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.Error))
@@ -61,42 +107,48 @@
         <div class="alert alert-success">@Model.Message</div>
     }
 
-    @* Responsive grid: each card has equal column width; cards keep the same image height *@
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start;">
+    <div id="listingsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start;">
         @foreach (var item in Model.ListingsWithOwners)
         {
             var n = item.Listing;
-            var imageUrl = (n.ImageUrls != null && n.ImageUrls.Count > 0)
-            ? n.ImageUrls[0]
-            : "/images/placeholder.png";
-            // Prefer stored profile image when available, fallback to gravatar
+            var imageUrl = (n.ImageUrls != null && n.ImageUrls.Count > 0) ? n.ImageUrls[0] : "/images/placeholder.png";
             var avatar = !string.IsNullOrWhiteSpace(item.OwnerProfileImageUrl) ? item.OwnerProfileImageUrl : GravatarUrl(item.OwnerEmail);
-            <div style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
-                <!-- image area: fixed height to keep cards equal -->
-                <div style="height:180px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');">
-                </div>
+            var displayName = !string.IsNullOrWhiteSpace(item.OwnerUserName) ? item.OwnerUserName : (item.OwnerEmail?.Split('@').FirstOrDefault() ?? "Eladó");
 
-                <!-- body -->
-                <div style="padding:12px;display:flex;flex-direction:column;gap:8px;flex:1;">
+            <div class="listing-card"
+                 data-title="@n.Title.ToLowerInvariant()"
+                 data-location="@((n.Location ?? "").ToLowerInvariant())"
+                 data-owner="@displayName.ToLowerInvariant()"
+                 style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
+
+                <div style="height:180px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');"></div>
+
+                <div style="padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;">
                     <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
-                        <div style="flex:1;">
+                        <div style="flex:1;min-width:0;">
                             <a asp-page="./Details" asp-route-azon="@n.Id" style="text-decoration:none;color:inherit;">
-                                <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@n.Title</div>
-                                <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@n.Price.ToString().Split(',')[0] Ft</div>
+                                @* Cím *@
+                                <div style="font-weight:700;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a1a2e;">
+                                    @n.Title
+                                </div>
+                                @* Elválasztó vonal *@
+                                <div style="height:1px;background:linear-gradient(90deg,#e0deff,transparent);margin:5px 0 5px;border-radius:1px;"></div>
+                                @* Ár badge *@
+                                <div style="display:inline-flex;align-items:center;background:linear-gradient(90deg,#eef2ff,#f0effe);color:#4c51bf;font-weight:800;font-size:13px;padding:3px 10px;border-radius:12px;">
+                                    @n.Price.ToString().Split(',')[0] Ft
+                                </div>
                             </a>
-                            <div style="font-size:13px;color:#6b7280;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
+                            <div style="font-size:12px;color:#9ca3af;margin-top:4px;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
                         </div>
 
-                        @* bookmark toggle form (keeps CategoryId and Saved when posting) *@
-                        <div>
+                        <div style="flex-shrink:0;">
                             <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
                                 <input type="hidden" name="azon" value="@n.Id" />
-                           
-                                <button type="submit" title="Toggle bookmark" style="background:none;border:none;padding:6px;cursor:pointer;">
+                                <button type="submit" title="Könyvjelző ki/be" style="background:none;border:none;padding:6px;cursor:pointer;">
                                     @if (item.IsBookmarked)
                                     {
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z"/>
+                                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
                                         </svg>
                                     }
                                     else
@@ -110,35 +162,31 @@
                         </div>
                     </div>
 
-                    
-
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
-                        <div style="display:flex;align-items:center;gap:10px">
-                            <div style="width:44px;height:44px;border-radius:999px;overflow:hidden;border:2px solid #fff;box-shadow:0 6px 14px rgba(9,20,40,0.06);">
-                                <img src="@avatar" alt="seller" style="width:100%;height:100%;object-fit:cover;display:block" />
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:6px;border-top:1px solid #f3f4f6;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <div style="width:36px;height:36px;border-radius:999px;overflow:hidden;border:2px solid #f0effe;box-shadow:0 2px 8px rgba(108,92,231,0.10);flex-shrink:0;">
+                                <img src="@avatar" alt="Eladó" style="width:100%;height:100%;object-fit:cover;display:block;" />
                             </div>
                             <div>
-                                <div style="font-weight:600;font-size:13px;">@((item.OwnerEmail?.Split('@').FirstOrDefault()) )</div>
-                                <div style="font-size:12px;color:#6b7280;">@ConditionMapper.FriendlyName(n.Condition)</div>
+                                <div style="font-weight:600;font-size:13px;color:#1a1a2e;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@displayName</div>
+                                <div style="font-size:11px;color:#9ca3af;">@ConditionMapper.FriendlyName(n.Condition)</div>
                             </div>
                         </div>
 
-                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-                            <a asp-page="./Details" asp-route-azon="@n.Id" class="btn btn-sm" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">Megtekintés</a>
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                            <a asp-page="./Details" asp-route-azon="@n.Id" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">Megtekintés</a>
 
-                            <div>
-                            @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
+                            <div style="display:flex;gap:6px;align-items:center;">
+                                @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    @* inline delete form with JS confirmation - posts to the Index page's Delete handler *@
                                     <form method="post" asp-page-handler="Delete" style="display:inline" onsubmit="return confirm('Biztosan törölni szeretnéd a hírdetést?');">
                                         <input type="hidden" name="azon" value="@n.Id" />
-                                        <button type="submit" class="btn btn-link p-0" style="color:#ef4444;text-decoration:none;font-size:13px;background:none;border:none;">Törlés</button>
+                                        <button type="submit" style="color:#ef4444;text-decoration:none;font-size:12px;background:none;border:none;cursor:pointer;padding:0;">Törlés</button>
                                     </form>
                                 }
-
                                 @if (!AuthSession.IsInRole("Admin") && string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
                                 {
-                                    <a asp-page="./Edit" asp-route-azon="@n.Id" style="margin-right:8px;color:#374151;text-decoration:none;font-size:13px;">Szerkesztés</a>
+                                    <a asp-page="./Edit" asp-route-azon="@n.Id" style="color:#6b7280;text-decoration:none;font-size:12px;">Szerkesztés</a>
                                 }
                             </div>
                         </div>
@@ -147,4 +195,36 @@
             </div>
         }
     </div>
+
+    <div id="noResults" style="display:none;text-align:center;padding:48px 20px;color:#9ca3af;">
+        <div style="font-size:36px;margin-bottom:12px;">🔍</div>
+        <div style="font-size:16px;font-weight:600;">Nincs találat</div>
+        <div style="font-size:14px;margin-top:4px;">Próbálj más kulcsszót!</div>
+    </div>
 </div>
+
+@section Scripts {
+    <script>
+        (function () {
+            var input = document.getElementById('listingSearch');
+            if (!input) return;
+
+            input.addEventListener('input', function () {
+                var q = input.value.trim().toLowerCase();
+                var cards = document.querySelectorAll('#listingsGrid .listing-card');
+                var visible = 0;
+
+                cards.forEach(function (card) {
+                    var title    = card.getAttribute('data-title') || '';
+                    var location = card.getAttribute('data-location') || '';
+                    var owner    = card.getAttribute('data-owner') || '';
+                    var match    = !q || title.includes(q) || location.includes(q) || owner.includes(q);
+                    card.style.display = match ? '' : 'none';
+                    if (match) visible++;
+                });
+
+                document.getElementById('noResults').style.display = visible === 0 && q ? 'block' : 'none';
+            });
+        })();
+    </script>
+}

@@ -66,7 +66,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
 
                 await _userApi.UpdateAsync(User.Id, User);
 
-                Message = "Profile saved.";
+                Message = "A profil mentése sikerült.";
                 return RedirectToPage(); // refresh and re-load
             }
             catch (Exception ex)

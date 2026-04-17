@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SwoopMarketplaceProjectFrontend.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -21,11 +19,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             _userApi = userApi;
         }
 
-        [BindProperty(SupportsGet = true)]
-        public long To { get; set; }
-
-        [BindProperty(SupportsGet = true)]
-        public long? Listing { get; set; }
+        [BindProperty(SupportsGet = true)] public long To { get; set; }
+        [BindProperty(SupportsGet = true)] public long? Listing { get; set; }
+        [BindProperty] public string NewMessage { get; set; } = "";
 
         // typed OtherUser so view can access ProfileImageUrl directly
         public MessageApi.OtherUserDto? OtherUser { get; set; }
@@ -39,32 +35,23 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
         // listing information if conversation is about a specific listing
         public MessageApi.ListingDto? ListingInfo { get; set; }
 
-        [BindProperty]
-        public string NewMessage { get; set; } = "";
-
         public async Task<IActionResult> OnGetAsync()
         {
-            if (!_auth.IsSignedIn) 
+            if (!_auth.IsSignedIn)
                 return RedirectToPage("/Account/Login", new { returnUrl = Url.Page("/Messages/Conversation", new { to = To, listing = Listing }) });
-            
-            if (To <= 0) 
-                return BadRequest("Invalid recipient.");
-
+            if (To <= 0) return BadRequest();
             await LoadConversationDataAsync();
             return Page();
         }
 
         public async Task<IActionResult> OnPostSendAsync()
         {
-            if (!_auth.IsSignedIn) 
-                return RedirectToPage("/Account/Login", new { returnUrl = Url.Page("/Messages/Conversation", new { to = To, listing = Listing }) });
-            
-            if (To <= 0) 
-                return BadRequest("Invalid recipient.");
+            if (!_auth.IsSignedIn)
+                return RedirectToPage("/Account/Login");
+            if (To <= 0) return BadRequest();
 
             if (string.IsNullOrWhiteSpace(NewMessage))
             {
-                TempData["Error"] = "Üres üzenetet nem lehet elküldeni.";
                 await LoadConversationDataAsync();
                 return Page();
             }
@@ -72,12 +59,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             try
             {
                 await _msgApi.SendAsync(To, NewMessage.Trim(), Listing);
-                
-                // Clear the message input
                 NewMessage = "";
-                
-                // Redirect back to the same conversation to refresh the messages
-                return RedirectToPage(new { to = To, listing = Listing, messageSent = "true" });
+                return RedirectToPage(new { to = To, listing = Listing });
             }
             catch (Exception ex)
             {
@@ -85,6 +68,20 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
                 await LoadConversationDataAsync();
                 return Page();
             }
+        }
+
+        public async Task<IActionResult> OnPostDeleteConversationAsync()
+        {
+            if (!_auth.IsSignedIn)
+                return RedirectToPage("/Account/Login");
+
+            try
+            {
+                await _msgApi.DeleteConversationAsync(To, Listing);
+            }
+            catch { /* ignore, already gone */ }
+
+            return RedirectToPage("/Messages/Index");
         }
 
         private async Task LoadConversationDataAsync()
@@ -111,10 +108,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
                     var me = await _userApi.GetByEmailAsync(CurrentUserEmail);
                     if (me != null) CurrentUserId = me.Id;
                 }
-                catch
-                {
-                    CurrentUserId = null;
-                }
+                catch { }
             }
 
             // get current user's profile image (if available) from UserApi
@@ -125,32 +119,18 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
                     var me = await _userApi.GetByAzonAsync(CurrentUserId.Value);
                     if (me != null && !string.IsNullOrWhiteSpace(me.ProfileImageUrl))
                     {
-                        // Normalize to absolute URL if it's relative
-                        if (me.ProfileImageUrl.StartsWith("/"))
-                        {
-                            CurrentUserProfileImageUrl = $"https://localhost:7000{me.ProfileImageUrl}";
-                        }
-                        else if (!me.ProfileImageUrl.StartsWith("http"))
-                        {
-                            CurrentUserProfileImageUrl = $"https://localhost:7000/{me.ProfileImageUrl}";
-                        }
-                        else
-                        {
-                            CurrentUserProfileImageUrl = me.ProfileImageUrl;
-                        }
+                        CurrentUserProfileImageUrl = me.ProfileImageUrl.StartsWith("http")
+                            ? me.ProfileImageUrl
+                            : $"https://localhost:7000{(me.ProfileImageUrl.StartsWith("/") ? "" : "/")}{me.ProfileImageUrl}";
                     }
                 }
-                catch
-                {
-                    // ignore
-                }
+                catch { }
             }
         }
 
         public string GetGravatarUrl(string? email, int size = 128)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                return $"/images/avatar.png";
+            if (string.IsNullOrWhiteSpace(email)) return "/images/avatar.png";
             using var md5 = MD5.Create();
             var hash = BitConverter.ToString(md5.ComputeHash(Encoding.UTF8.GetBytes(email.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
             return $"https://www.gravatar.com/avatar/{hash}?s={size}&d=identicon";

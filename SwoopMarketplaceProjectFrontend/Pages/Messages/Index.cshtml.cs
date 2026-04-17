@@ -24,5 +24,19 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             Conversations = await _msgApi.GetConversationsAsync();
             return Page();
         }
+
+        public async Task<IActionResult> OnPostDeleteConversationAsync(long otherUserId, long? listingId)
+        {
+            if (!_auth.IsSignedIn)
+                return RedirectToPage("/Account/Login");
+
+            try
+            {
+                await _msgApi.DeleteConversationAsync(otherUserId, listingId);
+            }
+            catch { /* ignore */ }
+
+            return RedirectToPage();
+        }
     }
 }
