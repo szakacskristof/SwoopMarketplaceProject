@@ -356,7 +356,7 @@
                         </div>
                         <div style="color:#6b7280;font-size:13px;">@n.CreatedAt.ToString("yyyy-MM-dd")</div>
                         <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;">
-                            <div style="font-weight:800;color:#4c51bf;">@n.Price.ToString().Split(',')[0] Ft</div>
+                            <div style="font-weight:800;color:#4c51bf;">@n.Price.ToHuf()</div>
                             <a asp-page="/Listings/Details" asp-route-azon="@n.Id" class="btn-primary">Megtekintés</a>
                         </div>
                     </div>

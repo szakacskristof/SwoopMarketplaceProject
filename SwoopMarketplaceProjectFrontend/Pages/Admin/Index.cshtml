@@ -2,7 +2,6 @@
 @model SwoopMarketplaceProjectFrontend.Pages.Admin.IndexModel
 @using SwoopMarketplaceProjectFrontend.Dtos
 @inject SwoopMarketplaceProjectFrontend.Services.AuthSession AuthSession
-
 @{
     ViewData["Title"] = "Admin Oldal";
 }
@@ -45,7 +44,7 @@
                         <tr>
                             <td>@item.Listing.Title</td>
                             <td>@item.OwnerEmail</td>
-                            <td>@item.Listing.Price</td>
+                            <td>@item.Listing.Price.ToHuf()</td>
                             <td>
                                 <button class="btn btn-sm btn-info me-1" type="button" data-bs-toggle="modal" data-bs-target="#modal-listing-@item.Listing.Id">
                                     Megtekintés
@@ -74,7 +73,7 @@
                                                 <img src="@(item.Listing.ImageUrls.FirstOrDefault() ?? "/images/placeholder.png")" alt="Kép" class="img-fluid rounded" style="width:100%;height:auto;object-fit:cover;" />
                                             </div>
                                             <div class="col-md-7">
-                                                <p><strong>Ár:</strong> @item.Listing.Price Ft</p>
+                                                <p><strong>Ár:</strong> @item.Listing.Price.ToHuf()</p>
                                                 <p><strong>Tulaj:</strong> @item.OwnerEmail</p>
                                                 <p><strong>Kategória:</strong> @(item.Listing.CategoryName ?? "-")</p>
                                                 <p><strong>Állapot:</strong> @item.Listing.Condition</p>

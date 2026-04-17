@@ -65,6 +65,34 @@
     .listing-card-hidden {
         display: none !important;
     }
+
+    /* Price sort control */
+    .sort-wrap {
+        display:flex;
+        align-items:center;
+        gap:8px;
+        margin-left:auto; /* push to right */
+    }
+
+    .sort-btn {
+        background: #fff;
+        border: 1px solid #e6eef8;
+        border-radius: 8px;
+        padding:6px 8px;
+        cursor:pointer;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        color:#4a5568;
+        font-weight:700;
+    }
+
+    .sort-btn.active {
+        background: #eef2ff;
+        color: #4c51bf;
+        border-color: #dfe7ff;
+        box-shadow: 0 2px 6px rgba(76,81,191,0.08);
+    }
 </style>
 
 <div style="padding:8px 12px;max-width:1200px;margin:0 auto;">
@@ -96,6 +124,22 @@
                    placeholder="Keresés cím, leírás, hely alapján…"
                    autocomplete="off" />
         </div>
+
+        @* Price sort control (right side) *@
+        <div class="sort-wrap" role="toolbar" aria-label="Rendezés ár szerint">
+            <button type="button" id="sortPriceAsc" class="sort-btn" data-order="asc" title="Rendezés ár szerint növekvő">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 19V5" /><path d="M5 12l7-7 7 7" />
+                </svg>
+                Ár 
+            </button>
+            <button type="button" id="sortPriceDesc" class="sort-btn" data-order="desc" title="Rendezés ár szerint csökkenő">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 5v14" /><path d="M19 12l-7 7-7-7" />
+                </svg>
+                Ár 
+            </button>
+        </div>
     </div>
 
     @if (!string.IsNullOrEmpty(Model.Error))
@@ -119,6 +163,7 @@
                  data-title="@n.Title.ToLowerInvariant()"
                  data-location="@((n.Location ?? "").ToLowerInvariant())"
                  data-owner="@displayName.ToLowerInvariant()"
+                 data-price="@(n.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
                  style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
 
                 <div style="height:180px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');"></div>
@@ -135,7 +180,7 @@
                                 <div style="height:1px;background:linear-gradient(90deg,#e0deff,transparent);margin:5px 0 5px;border-radius:1px;"></div>
                                 @* Ár badge *@
                                 <div style="display:inline-flex;align-items:center;background:linear-gradient(90deg,#eef2ff,#f0effe);color:#4c51bf;font-weight:800;font-size:13px;padding:3px 10px;border-radius:12px;">
-                                    @n.Price.ToString().Split(',')[0] Ft
+                                    @n.Price.ToHuf()
                                 </div>
                             </a>
                             <div style="font-size:12px;color:#9ca3af;margin-top:4px;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
@@ -225,6 +270,41 @@
 
                 document.getElementById('noResults').style.display = visible === 0 && q ? 'block' : 'none';
             });
+
+            // Price sort buttons
+            var btnAsc = document.getElementById('sortPriceAsc');
+            var btnDesc = document.getElementById('sortPriceDesc');
+            var grid = document.getElementById('listingsGrid');
+
+            function clearActive() {
+                btnAsc.classList.remove('active');
+                btnDesc.classList.remove('active');
+            }
+
+            function sortListings(order) {
+                if (!grid) return;
+                var cards = Array.from(grid.querySelectorAll('.listing-card'));
+                cards.sort(function (a, b) {
+                    var pa = parseFloat(a.getAttribute('data-price') || '0');
+                    var pb = parseFloat(b.getAttribute('data-price') || '0');
+                    return order === 'asc' ? pa - pb : pb - pa;
+                });
+                // re-append in sorted order
+                cards.forEach(function (c) { grid.appendChild(c); });
+            }
+
+            if (btnAsc && btnDesc) {
+                btnAsc.addEventListener('click', function () {
+                    clearActive();
+                    btnAsc.classList.add('active');
+                    sortListings('asc');
+                });
+                btnDesc.addEventListener('click', function () {
+                    clearActive();
+                    btnDesc.classList.add('active');
+                    sortListings('desc');
+                });
+            }
         })();
     </script>
 }
