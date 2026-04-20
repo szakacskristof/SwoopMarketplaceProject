@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using SwoopMarketplaceProject.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.ComponentModel.DataAnnotations;
 
 namespace ThormaBackendAPI.Controllers;
 
@@ -19,10 +18,10 @@ public class AuthController : ControllerBase
     private readonly SwoopContext _sdbc;
     private readonly IConfiguration _cfg;
 
-    public AuthController(UserManager<IdentityUser> users, IConfiguration cfg,SwoopContext sdbc)
+    public AuthController(UserManager<IdentityUser> users, IConfiguration cfg, SwoopContext sdbc)
     {
         _users = users;
-        _sdbc=sdbc;
+        _sdbc = sdbc;
         _cfg = cfg;
     }
 

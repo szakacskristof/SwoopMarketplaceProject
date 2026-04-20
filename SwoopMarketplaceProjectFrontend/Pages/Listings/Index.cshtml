@@ -68,189 +68,600 @@
 
     /* Price sort control */
     .sort-wrap {
-        display:flex;
-        align-items:center;
-        gap:8px;
-        margin-left:auto; /* push to right */
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
     }
 
     .sort-btn {
         background: #fff;
         border: 1px solid #e6eef8;
         border-radius: 8px;
-        padding:6px 8px;
-        cursor:pointer;
-        display:inline-flex;
-        align-items:center;
-        gap:6px;
-        color:#4a5568;
-        font-weight:700;
+        padding: 6px 8px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #4a5568;
+        font-weight: 700;
+        transition: background .15s, border-color .15s, box-shadow .15s;
     }
 
-    .sort-btn.active {
-        background: #eef2ff;
-        color: #4c51bf;
-        border-color: #dfe7ff;
-        box-shadow: 0 2px 6px rgba(76,81,191,0.08);
+        .sort-btn:hover {
+            background: #f7f8ff;
+            border-color: #c7d2fe;
+        }
+
+        .sort-btn.active {
+            background: #eef2ff;
+            color: #4c51bf;
+            border-color: #dfe7ff;
+            box-shadow: 0 2px 6px rgba(76,81,191,0.08);
+        }
+
+    /* Left sidebar filters */
+    .left-filters {
+        width: 280px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 20px;
+    }
+
+    .left-filters .panel {
+        background: linear-gradient(180deg, #ffffff 0%, #fafaff 100%);
+        padding: 20px 18px;
+        border-radius: 14px;
+        border: 1px solid #e0deff;
+        box-shadow: 0 8px 28px rgba(108, 92, 231, 0.06);
+    }
+
+    .left-filters .panel .form-label {
+        font-size: 13px;
+        color: #4a5568;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .left-filters .panel .form-control {
+        border: 1px solid #e0deff;
+        border-radius: 10px;
+        font-size: 14px;
+        padding: 8px 12px;
+        transition: border-color .15s, box-shadow .15s;
+    }
+
+        .left-filters .panel .form-control:focus {
+            border-color: #6c5ce7;
+            box-shadow: 0 0 0 3px rgba(108,92,231,.08);
+        }
+
+    /* Collapsible filter section */
+    .filter-section-toggle {
+        width: 100%;
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 0;
+        font-family: inherit;
+        outline: none;
+    }
+
+        .filter-section-toggle::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, #6c5ce7, #a78bfa);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .filter-section-toggle .chevron {
+            margin-left: auto;
+            transition: transform .25s ease;
+            color: #a78bfa;
+            flex-shrink: 0;
+        }
+
+        .filter-section-toggle.collapsed .chevron {
+            transform: rotate(-90deg);
+        }
+
+    .filter-section-body {
+        overflow: hidden;
+        max-height: 600px;
+        transition: max-height .3s ease, opacity .25s ease;
+        opacity: 1;
+    }
+
+        .filter-section-body.closed {
+            max-height: 0;
+            opacity: 0;
+        }
+
+    .filter-section-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .filter-section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background: linear-gradient(180deg, #6c5ce7, #a78bfa);
+            border-radius: 2px;
+        }
+
+    .filter-divider {
+        height: 1px;
+        background: linear-gradient(90deg, #e0deff, transparent);
+        margin: 14px 0;
+        border: none;
+    }
+
+    /* Styled buttons */
+    .swoop-filter-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        color: #fff;
+        background: linear-gradient(135deg, #6c5ce7 0%, #a78bfa 100%);
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform .15s, box-shadow .15s, filter .15s;
+        box-shadow: 0 4px 14px rgba(108, 92, 231, 0.25);
+    }
+
+        .swoop-filter-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.35);
+            filter: brightness(1.05);
+        }
+
+        .swoop-filter-btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(108, 92, 231, 0.2);
+        }
+
+    .swoop-filter-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 9px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        color: #6c5ce7;
+        background: #f0effe;
+        border: 1px solid #e0deff;
+        border-radius: 10px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .15s, border-color .15s, transform .15s, box-shadow .15s;
+    }
+
+        .swoop-filter-btn-secondary:hover {
+            background: #e0deff;
+            border-color: #c7d2fe;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(108, 92, 231, 0.1);
+            color: #5b4bd5;
+        }
+
+        .swoop-filter-btn-secondary:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+    .locations-list {
+        max-width: 100%;
+        background: transparent;
+        padding: 6px 0 0 0;
+        font-size: 14px;
+    }
+
+    .location-item {
+        display: inline-block;
+        margin: 3px 4px;
+    }
+
+    .location-link {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: #f0effe;
+        color: #374151;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        border: 1px solid transparent;
+        transition: all .15s;
+    }
+
+        .location-link:hover {
+            background: #e0deff;
+            color: #4c51bf;
+        }
+
+        .location-link.active {
+            background: linear-gradient(90deg, #6c5ce7, #a78bfa);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 2px 8px rgba(108,92,231,0.18);
+        }
+
+    /* Listings grid centering */
+    #listingsGrid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
+        align-items: start;
+        justify-items: center;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .listing-card {
+        width: 100%;
+        max-width: 340px;
+        transition: transform .18s, box-shadow .18s;
+    }
+
+        .listing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(108,92,231,0.12);
+        }
+
+    /* responsive */
+    @@media (max-width: 1200px) {
+        #listingsGrid {
+            max-width: 100%;
+        }
+    }
+
+    @@media (max-width: 880px) {
+        .layout-row {
+            flex-direction: column;
+        }
+
+        .left-filters {
+            width: 100%;
+            position: static;
+        }
+
+        #listingsGrid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            max-width: 100%;
+        }
+
+        .swoop-search-wrap {
+            max-width: 100%;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        #listingsGrid {
+            grid-template-columns: 1fr;
+        }
+
+        .listing-card {
+            max-width: 100%;
+        }
+
+        .sort-wrap {
+            margin-left: 0;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .swoop-search-wrap {
+            flex: 1 1 100%;
+            max-width: 100%;
+        }
+
+        .swoop-filter-btn-primary,
+        .swoop-filter-btn-secondary {
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .filter-section-toggle {
+            font-size: 14px;
+        }
+
+        .location-link {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+    }
+
+    @@media (max-width: 400px) {
+        #listingsGrid {
+            gap: 12px;
+        }
+
+        .left-filters .panel {
+            padding: 14px 12px;
+        }
     }
 </style>
 
-<div style="padding:8px 12px;max-width:1200px;margin:0 auto;">
+<div style="padding:8px 12px;max-width:1440px;margin:0 auto;width:100%;box-sizing:border-box;">
     <h1 style="margin:10px 0 18px;font-family:Segoe UI,Roboto,Arial,sans-serif;color:#222">Swoop</h1>
 
-    @* ── Szűrő + keresősáv ── *@
-    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
-        <form method="get" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <label class="form-label" style="margin:0;font-weight:700;white-space:nowrap;">Szűrés kategória alapján:</label>
-            <select name="CategoryId" onchange="this.form.submit()" style="padding:8px;border-radius:8px;border:1px solid #e6eef8;font-size:14px;">
-                <option value="">Minden kategória</option>
-                @foreach (var c in Model.Categories)
-                {
-                    <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
-                }
-            </select>
-        </form>
+    @* layout: left sidebar (filters) + main content to right *@
+    <div class="layout-row" style="display:flex;gap:18px;align-items:flex-start;">
 
-        <div class="swoop-search-wrap">
-            <span class="swoop-search-icon">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="7" />
-                    <line x1="16.5" y1="16.5" x2="22" y2="22" />
-                </svg>
-            </span>
-            <input id="listingSearch"
-                   class="swoop-search-input"
-                   type="search"
-                   placeholder="Keresés cím, leírás, hely alapján…"
-                   autocomplete="off" />
-        </div>
+        <aside class="left-filters" aria-label="Szűrők oszlop">
+            <div class="panel">
+                <div class="filter-section-title">Szűrők</div>
 
-        @* Price sort control (right side) *@
-        <div class="sort-wrap" role="toolbar" aria-label="Rendezés ár szerint">
-            <button type="button" id="sortPriceAsc" class="sort-btn" data-order="asc" title="Rendezés ár szerint növekvő">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 19V5" /><path d="M5 12l7-7 7 7" />
-                </svg>
-                Ár 
-            </button>
-            <button type="button" id="sortPriceDesc" class="sort-btn" data-order="desc" title="Rendezés ár szerint csökkenő">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M12 5v14" /><path d="M19 12l-7 7-7-7" />
-                </svg>
-                Ár 
-            </button>
-        </div>
-    </div>
+                <div>
+                    <form method="get" class="mb-3">
+                        @* Kategória – collapsible *@
+                        <button type="button" class="filter-section-toggle" data-collapse-target="filterCategory" aria-expanded="true">
+                            Kategória
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                        <div id="filterCategory" class="filter-section-body" style="margin-top:8px;">
+                            <select name="CategoryId" class="form-control mb-2">
+                                <option value="">Minden kategória</option>
+                                @foreach (var c in Model.Categories)
+                                {
+                                    <option value="@c.Id" selected="@(Model.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                                }
+                            </select>
+                        </div>
 
-    @if (!string.IsNullOrEmpty(Model.Error))
-    {
-        <div class="alert alert-danger">@Model.Error</div>
-    }
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div class="alert alert-success">@Model.Message</div>
-    }
+                        <hr class="filter-divider" />
 
-    <div id="listingsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;align-items:start;">
-        @foreach (var item in Model.ListingsWithOwners)
-        {
-            var n = item.Listing;
-            var imageUrl = (n.ImageUrls != null && n.ImageUrls.Count > 0) ? n.ImageUrls[0] : "/images/placeholder.png";
-            var avatar = !string.IsNullOrWhiteSpace(item.OwnerProfileImageUrl) ? item.OwnerProfileImageUrl : GravatarUrl(item.OwnerEmail);
-            var displayName = !string.IsNullOrWhiteSpace(item.OwnerUserName) ? item.OwnerUserName : (item.OwnerEmail?.Split('@').FirstOrDefault() ?? "Eladó");
+                        @* Ár – collapsible *@
+                        <button type="button" class="filter-section-toggle" data-collapse-target="filterPrice" aria-expanded="true">
+                            Ár (HUF)
+                            <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+                        <div id="filterPrice" class="filter-section-body" style="margin-top:8px;">
+                            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                            <input name="MinPrice" type="number" step="1" min="0" class="form-control" value="@(Model.MinPrice?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")" placeholder="Min" />
+                            <input name="MaxPrice" type="number" step="1" min="0" class="form-control" value="@(Model.MaxPrice?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")" placeholder="Max" />
+                        </div>
+                        </div>
 
-            <div class="listing-card"
-                 data-title="@n.Title.ToLowerInvariant()"
-                 data-location="@((n.Location ?? "").ToLowerInvariant())"
-                 data-owner="@displayName.ToLowerInvariant()"
-                 data-price="@(n.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
-                 style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
-
-                <div style="height:180px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');"></div>
-
-                <div style="padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;">
-                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
-                        <div style="flex:1;min-width:0;">
-                            <a asp-page="./Details" asp-route-azon="@n.Id" style="text-decoration:none;color:inherit;">
-                                @* Cím *@
-                                <div style="font-weight:700;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a1a2e;">
-                                    @n.Title
-                                </div>
-                                @* Elválasztó vonal *@
-                                <div style="height:1px;background:linear-gradient(90deg,#e0deff,transparent);margin:5px 0 5px;border-radius:1px;"></div>
-                                @* Ár badge *@
-                                <div style="display:inline-flex;align-items:center;background:linear-gradient(90deg,#eef2ff,#f0effe);color:#4c51bf;font-weight:800;font-size:13px;padding:3px 10px;border-radius:12px;">
-                                    @n.Price.ToHuf()
-                                </div>
+                        <input type="hidden" name="Location" value="@(Model.Location ?? "")" />
+                        <div style="display:flex;gap:8px;margin-top:12px;">
+                            <button type="submit" class="swoop-filter-btn-primary" style="flex:1">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                                Alkalmaz
+                            </button>
+                            <a class="swoop-filter-btn-secondary" href="@Url.Page("/Listings/Index")" style="flex:1;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Törlés
                             </a>
-                            <div style="font-size:12px;color:#9ca3af;margin-top:4px;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
                         </div>
+                    </form>
 
-                        <div style="flex-shrink:0;">
-                            <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
-                                <input type="hidden" name="azon" value="@n.Id" />
-                                <button type="submit" title="Könyvjelző ki/be" style="background:none;border:none;padding:6px;cursor:pointer;">
-                                    @if (item.IsBookmarked)
-                                    {
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
-                                        </svg>
-                                    }
-                                    else
-                                    {
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                            <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
-                                        </svg>
-                                    }
-                                </button>
-                            </form>
-                        </div>
-                    </div>
+                    <hr class="filter-divider" />
 
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:6px;border-top:1px solid #f3f4f6;">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <div style="width:36px;height:36px;border-radius:999px;overflow:hidden;border:2px solid #f0effe;box-shadow:0 2px 8px rgba(108,92,231,0.10);flex-shrink:0;">
-                                <img src="@avatar" alt="Eladó" style="width:100%;height:100%;object-fit:cover;display:block;" />
-                            </div>
-                            <div>
-                                <div style="font-weight:600;font-size:13px;color:#1a1a2e;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@displayName</div>
-                                <div style="font-size:11px;color:#9ca3af;">@ConditionMapper.FriendlyName(n.Condition)</div>
-                            </div>
-                        </div>
+                    @* Települések – collapsible (default: closed) *@
+                    <button type="button" class="filter-section-toggle collapsed" data-collapse-target="filterLocations" aria-expanded="false">
+                        Települések (@Model.Locations.Count)
+                        <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                    </button>
+                    <div id="filterLocations" class="filter-section-body closed" style="margin-top:8px;">
+                        <div class="locations-list">
+                            @foreach (var loc in Model.Locations)
+                            {
+                                var isActive = string.Equals(loc.Name, Model.Location ?? "", StringComparison.OrdinalIgnoreCase);
+                                var query = new Dictionary<string, string?> {
+                                    ["CategoryId"] = Model.CategoryId?.ToString(),
+                                    ["Location"] = loc.Name,
+                                    ["MinPrice"] = Model.MinPrice?.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                    ["MaxPrice"] = Model.MaxPrice?.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                    ["Saved"] = Model.Saved ? "true" : null
+                                }.Where(kv => !string.IsNullOrEmpty(kv.Value))
+                                 .Aggregate("?",(acc, kv) => acc == "?" ? $"?{kv.Key}={System.Net.WebUtility.UrlEncode(kv.Value!)}" : $"{acc}&{kv.Key}={System.Net.WebUtility.UrlEncode(kv.Value!)}");
 
-                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-                            <a asp-page="./Details" asp-route-azon="@n.Id" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">Megtekintés</a>
-
-                            <div style="display:flex;gap:6px;align-items:center;">
-                                @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <form method="post" asp-page-handler="Delete" style="display:inline" onsubmit="return confirm('Biztosan törölni szeretnéd a hírdetést?');">
-                                        <input type="hidden" name="azon" value="@n.Id" />
-                                        <button type="submit" style="color:#ef4444;text-decoration:none;font-size:12px;background:none;border:none;cursor:pointer;padding:0;">Törlés</button>
-                                    </form>
-                                }
-                                @if (!AuthSession.IsInRole("Admin") && string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <a asp-page="./Edit" asp-route-azon="@n.Id" style="color:#6b7280;text-decoration:none;font-size:12px;">Szerkesztés</a>
-                                }
+                                <span class="location-item">
+                                    <a class="location-link @(isActive ? "active" : "")" href="@Url.Page("/Listings/Index")@query">@loc.Name (@loc.Count)</a>
+                                </span>
+                            }
+                            <div style="margin-top:8px;">
+                                <a class="location-link @(string.IsNullOrWhiteSpace(Model.Location) ? "active" : "")" href="@Url.Page("/Listings/Index")">Összes település</a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        }
-    </div>
+        </aside>
 
-    <div id="noResults" style="display:none;text-align:center;padding:48px 20px;color:#9ca3af;">
-        <div style="font-size:36px;margin-bottom:12px;">🔍</div>
-        <div style="font-size:16px;font-weight:600;">Nincs találat</div>
-        <div style="font-size:14px;margin-top:4px;">Próbálj más kulcsszót!</div>
+        <main style="flex:1">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px;">
+                <div class="swoop-search-wrap" style="flex:1;">
+                    <span class="swoop-search-icon">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="7" />
+                            <line x1="16.5" y1="16.5" x2="22" y2="22" />
+                        </svg>
+                    </span>
+                    <input id="listingSearch"
+                           class="swoop-search-input"
+                           type="search"
+                           placeholder="Keresés cím, leírás, hely alapján…"
+                           autocomplete="off" />
+                </div>
+
+                @* Price sort control (right side) *@
+                <div class="sort-wrap" role="toolbar" aria-label="Rendezés ár szerint">
+                    <button type="button" id="sortPriceAsc" class="sort-btn" data-order="asc" title="Rendezés ár szerint növekvő">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 19V5" /><path d="M5 12l7-7 7 7" />
+                        </svg>
+                        Ár
+                    </button>
+                    <button type="button" id="sortPriceDesc" class="sort-btn" data-order="desc" title="Rendezés ár szerint csökkenő">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 5v14" /><path d="M19 12l-7 7-7-7" />
+                        </svg>
+                        Ár
+                    </button>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Error))
+            {
+                <div class="alert alert-danger">@Model.Error</div>
+            }
+            @if (!string.IsNullOrEmpty(Model.Message))
+            {
+                <div class="alert alert-success">@Model.Message</div>
+            }
+
+            @* Server-side empty state: show message when no listings after filters *@
+            @if (!Model.ListingsWithOwners.Any())
+            {
+                <div class="text-center" style="padding:48px 20px;color:#9ca3af;">
+                    <div style="font-size:36px;margin-bottom:12px;">📭</div>
+                    <div style="font-size:20px;font-weight:700;margin-bottom:6px;">Nincs hirdetés</div>
+                    <div style="font-size:14px;">Nincs találat a kiválasztott szűrők alapján.</div>
+                </div>
+            }
+            else
+            {
+                <div id="listingsGrid">
+                    @foreach (var item in Model.ListingsWithOwners)
+                    {
+                        var n = item.Listing;
+                        var imageUrl = (n.ImageUrls != null && n.ImageUrls.Count > 0) ? n.ImageUrls[0] : "/images/placeholder.png";
+                        var avatar = !string.IsNullOrWhiteSpace(item.OwnerProfileImageUrl) ? item.OwnerProfileImageUrl : GravatarUrl(item.OwnerEmail);
+                        var displayName = !string.IsNullOrWhiteSpace(item.OwnerUserName) ? item.OwnerUserName : (item.OwnerEmail?.Split('@').FirstOrDefault() ?? "Eladó");
+
+                        <div class="listing-card"
+                             data-title="@n.Title.ToLowerInvariant()"
+                             data-location="@((n.Location ?? "").ToLowerInvariant())"
+                             data-owner="@displayName.ToLowerInvariant()"
+                             data-price="@(n.Price.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+                             style="background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.08);overflow:hidden;display:flex;flex-direction:column;">
+
+                            <div style="height:180px;background:#f4f6fb center/cover no-repeat;border-bottom:1px solid rgba(0,0,0,0.04);background-image:url('@imageUrl');"></div>
+
+                            <div style="padding:12px;display:flex;flex-direction:column;gap:6px;flex:1;">
+                                <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;">
+                                    <div style="flex:1;min-width:0;">
+                                        <a asp-page="./Details" asp-route-azon="@n.Id" style="text-decoration:none;color:inherit;">
+                                            <div style="font-weight:700;font-size:15px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#1a1a2e;">
+                                                @n.Title
+                                            </div>
+                                            <div style="height:1px;background:linear-gradient(90deg,#e0deff,transparent);margin:5px 0 5px;border-radius:1px;"></div>
+                                            <div style="display:inline-flex;align-items:center;background:linear-gradient(90deg,#eef2ff,#f0effe);color:#4c51bf;font-weight:800;font-size:13px;padding:3px 10px;border-radius:12px;">
+                                                @n.Price.ToHuf()
+                                            </div>
+                                        </a>
+                                        <div style="font-size:12px;color:#9ca3af;margin-top:4px;">@((n.Location ?? "")) • @n.CreatedAt.ToString("yyyy-MM-dd")</div>
+                                    </div>
+
+                                    <div style="flex-shrink:0;">
+                                        <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
+                                            <input type="hidden" name="azon" value="@n.Id" />
+                                            <button type="submit" title="Könyvjelző ki/be" style="background:none;border:none;padding:6px;cursor:pointer;">
+                                                @if (item.IsBookmarked)
+                                                {
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                        <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
+                                                    </svg>
+                                                }
+                                                else
+                                                {
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                                        <path d="M6 2a1 1 0 00-1 1v18l7-4 7 4V3a1 1 0 00-1-1H6z" />
+                                                    </svg>
+                                                }
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:6px;border-top:1px solid #f3f4f6;">
+                                    <div style="display:flex;align-items:center;gap:8px;">
+                                        <div style="width:36px;height:36px;border-radius:999px;overflow:hidden;border:2px solid #f0effe;box-shadow:0 2px 8px rgba(108,92,231,0.10);flex-shrink:0;">
+                                            <img src="@avatar" alt="Eladó" style="width:100%;height:100%;object-fit:cover;display:block;" />
+                                        </div>
+                                        <div>
+                                            <div style="font-weight:600;font-size:13px;color:#1a1a2e;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">@displayName</div>
+                                            <div style="font-size:11px;color:#9ca3af;">@ConditionMapper.FriendlyName(n.Condition)</div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+                                        <a asp-page="./Details" asp-route-azon="@n.Id" style="background:#eef2ff;color:#4c51bf;padding:6px 10px;border-radius:8px;text-decoration:none;font-weight:700;font-size:13px;">Megtekintés</a>
+
+                                        <div style="display:flex;gap:6px;align-items:center;">
+                                            @if (AuthSession.IsInRole("Admin") || string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <form method="post" asp-page-handler="Delete" style="display:inline" onsubmit="return confirm('Biztosan törölni szeretnéd a hírdetést?');">
+                                                    <input type="hidden" name="azon" value="@n.Id" />
+                                                    <button type="submit" style="color:#ef4444;text-decoration:none;font-size:12px;background:none;border:none;cursor:pointer;padding:0;">Törlés</button>
+                                                </form>
+                                            }
+                                            @if (!AuthSession.IsInRole("Admin") && string.Equals(AuthSession.GetEmail(), item.OwnerEmail, StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <a asp-page="./Edit" asp-route-azon="@n.Id" style="color:#6b7280;text-decoration:none;font-size:12px;">Szerkesztés</a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </main>
     </div>
 </div>
 
 @section Scripts {
     <script>
         (function () {
+            // Collapsible filter sections
+            document.querySelectorAll('.filter-section-toggle').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var targetId = btn.getAttribute('data-collapse-target');
+                    var body = document.getElementById(targetId);
+                    if (!body) return;
+                    var isOpen = !body.classList.contains('closed');
+                    if (isOpen) {
+                        body.classList.add('closed');
+                        btn.classList.add('collapsed');
+                        btn.setAttribute('aria-expanded', 'false');
+                    } else {
+                        body.classList.remove('closed');
+                        btn.classList.remove('collapsed');
+                        btn.setAttribute('aria-expanded', 'true');
+                    }
+                });
+            });
+
             var input = document.getElementById('listingSearch');
             if (!input) return;
 
@@ -268,7 +679,9 @@
                     if (match) visible++;
                 });
 
-                document.getElementById('noResults').style.display = visible === 0 && q ? 'block' : 'none';
+                // client-side no results only handles the live search; server-side empty handled in Razor
+                var clientNoResults = document.getElementById('noResults');
+                if (clientNoResults) clientNoResults.style.display = visible === 0 && q ? 'block' : 'none';
             });
 
             // Price sort buttons
@@ -277,8 +690,8 @@
             var grid = document.getElementById('listingsGrid');
 
             function clearActive() {
-                btnAsc.classList.remove('active');
-                btnDesc.classList.remove('active');
+                if (btnAsc) btnAsc.classList.remove('active');
+                if (btnDesc) btnDesc.classList.remove('active');
             }
 
             function sortListings(order) {

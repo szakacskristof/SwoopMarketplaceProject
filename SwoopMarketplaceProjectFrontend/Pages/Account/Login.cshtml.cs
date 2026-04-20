@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SwoopMarketplaceProjectFrontend.Services;
+using System.ComponentModel.DataAnnotations;
 
 namespace SwoopMarketplaceProjectFrontend.Pages.Account
 {
@@ -20,8 +21,12 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
             _session = session;
         }
 
-        [BindProperty] public string Email { get; set; } = "";
-        [BindProperty] public string Password { get; set; } = "";
+        [BindProperty, Required(ErrorMessage = "Kötelezõ mezõ."), EmailAddress(ErrorMessage = "Kérjük, érvényes e-mail címet adjon meg.")]
+        public string Email { get; set; } = "";
+
+        [BindProperty, Required(ErrorMessage = "Kötelezõ mezõ.")]
+        public string Password { get; set; } = "";
+
         [BindProperty(SupportsGet = true)]
         public string? ReturnUrl { get; set; }
         public string? Error { get; set; }
@@ -29,6 +34,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
 
         public async Task<IActionResult> OnPostAsync()
         {
+            if (!ModelState.IsValid) return Page();
+
             try
             {
                 var token = await _authApi.LoginAsync(Email, Password);

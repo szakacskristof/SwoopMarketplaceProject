@@ -20,6 +20,17 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         [BindProperty(SupportsGet = true)]
         public long? CategoryId { get; set; }
 
+        // Location filter (town/city)
+        [BindProperty(SupportsGet = true)]
+        public string? Location { get; set; }
+
+        // Price range filters
+        [BindProperty(SupportsGet = true)]
+        public decimal? MinPrice { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public decimal? MaxPrice { get; set; }
+
         // show saved/bookmarked view
         [BindProperty(SupportsGet = true)]
         public bool Saved { get; set; }
@@ -29,6 +40,10 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
         [TempData]
         public string? Error { get; set; }
+
+        // Locations with counts (computed from listings)
+        public record LocCount(string Name, int Count);
+        public List<LocCount> Locations { get; private set; } = new();
 
         public IndexModel(ListingApi api, AuthSession auth, CategoryApi categoryApi, BookmarkApi bookmarkApi)
         {
@@ -53,6 +68,15 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             // load listings (with owners)
             var all = await _api.GetAllWithOwnersAsync();
 
+            // compute location counts from the full set (before later filtering) so user sees all known locations
+            var locGroups = all
+                .GroupBy(x => string.IsNullOrWhiteSpace(x.Listing.Location) ? "Ismeretlen" : x.Listing.Location!.Trim())
+                .Select(g => new LocCount(g.Key, g.Count()))
+                .OrderByDescending(l => l.Count)
+                .ThenBy(l => l.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            Locations = locGroups;
+
             // mark bookmarks if signed in
             HashSet<long>? bookmarked = null;
             if (_auth.IsSignedIn)
@@ -65,16 +89,31 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                 catch { bookmarked = null; }
             }
 
+            // Start from full list and apply filters
+            var filtered = all.AsEnumerable();
+
             if (CategoryId.HasValue)
             {
-                ListingsWithOwners = all
-                    .Where(x => x.Listing.CategoryId.HasValue && x.Listing.CategoryId.Value == CategoryId.Value)
-                    .ToList();
+                filtered = filtered.Where(x => x.Listing.CategoryId.HasValue && x.Listing.CategoryId.Value == CategoryId.Value);
             }
-            else
+
+            if (!string.IsNullOrWhiteSpace(Location))
             {
-                ListingsWithOwners = all.ToList();
+                var locTrim = Location.Trim();
+                filtered = filtered.Where(x => string.Equals((x.Listing.Location ?? "").Trim(), locTrim, StringComparison.OrdinalIgnoreCase));
             }
+
+            if (MinPrice.HasValue)
+            {
+                filtered = filtered.Where(x => x.Listing.Price >= MinPrice.Value);
+            }
+
+            if (MaxPrice.HasValue)
+            {
+                filtered = filtered.Where(x => x.Listing.Price <= MaxPrice.Value);
+            }
+
+            ListingsWithOwners = filtered.ToList();
 
             // annotate bookmark state
             if (bookmarked != null)
@@ -109,8 +148,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             var lwo = await _api.GetByAzonWithOwnerAsync(azon);
             if (lwo is null)
             {
-                Error = "Hírdetés nem található!";
-                return RedirectToPage(new { CategoryId, Saved });
+                Error = "Hirdetés nem található!";
+                return RedirectToPage(new { CategoryId, Location, MinPrice, MaxPrice, Saved });
             }
 
             var ownerEmail = lwo.OwnerEmail;
@@ -118,25 +157,25 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
 
             if (!(_auth.IsInRole("Admin") || string.Equals(callerEmail, ownerEmail, StringComparison.OrdinalIgnoreCase)))
             {
-                Error = "A fiók nincs azonosítva a hírdetés törléséhez!";
-                return RedirectToPage(new { CategoryId, Saved });
+                Error = "A felhasználó nincs azonosítva a hirdetés törléséhez!";
+                return RedirectToPage(new { CategoryId, Location, MinPrice, MaxPrice, Saved });
             }
 
             try
             {
                 await _api.DeleteAsync(azon);
-                Message = "Hírdetés törölve!";
-                return RedirectToPage(new { CategoryId, Saved });
+                Message = "Hirdetés törölve!";
+                return RedirectToPage(new { CategoryId, Location, MinPrice, MaxPrice, Saved });
             }
             catch (HttpRequestException ex)
             {
                 Error = ex.Message;
-                return RedirectToPage(new { CategoryId, Saved });
+                return RedirectToPage(new { CategoryId, Location, MinPrice, MaxPrice, Saved });
             }
             catch (Exception ex)
             {
                 Error = ex.Message;
-                return RedirectToPage(new { CategoryId, Saved });
+                return RedirectToPage(new { CategoryId, Location, MinPrice, MaxPrice, Saved });
             }
         }
 
@@ -145,7 +184,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         {
             if (!_auth.IsSignedIn)
             {
-                return RedirectToPage("/Account/Login", new { returnUrl = Url.Page("/Listings/Index", new { CategoryId, Saved }) });
+                return RedirectToPage("/Account/Login", new { returnUrl = Url.Page("/Listings/Index", new { CategoryId, Location, MinPrice, MaxPrice, Saved }) });
             }
 
             try
@@ -166,7 +205,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
                 Error = ex.Message;
             }
 
-            return RedirectToPage(new { CategoryId, Saved });
+            return RedirectToPage(new { CategoryId, Location, MinPrice, MaxPrice, Saved });
         }
     }
 }
