@@ -1,219 +1,726 @@
 ﻿@page
 @model SwoopMarketplaceProjectFrontend.Pages.Admin.IndexModel
 @using SwoopMarketplaceProjectFrontend.Dtos
-@inject SwoopMarketplaceProjectFrontend.Services.AuthSession AuthSession
+@using SwoopMarketplaceProjectFrontend.Services
+@inject AuthSession AuthSession
 @{
     ViewData["Title"] = "Admin Oldal";
 }
 
-<h1>Admin felület</h1>
+<style>
+    .admin-wrap {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 12px;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    }
 
-<ul class="nav nav-tabs" id="adminTabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedTab == "listings" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-listings" type="button">Hirdetések</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedTab == "users" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">Felhasználók</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link @(Model.SelectedTab == "reports" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-reports" type="button">Reportolt hirdetések</button>
-    </li>
-</ul>
+    .admin-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
 
-<div class="tab-content mt-3">
-    <div class="tab-pane fade @(Model.SelectedTab == "listings" ? "show active" : "")" id="tab-listings" role="tabpanel">
-        <h4>Összes hirdetés</h4>
-        @if (Model.Listings?.Any() != true)
-        {
-            <p>Nincs hirdetés.</p>
+    .admin-header h1 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin: 0;
+    }
+
+    .admin-header .admin-icon {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #6c5ce7 0%, #a78bfa 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(108,92,231,0.25);
+    }
+
+    /* Tabs */
+    .admin-tabs {
+        display: flex;
+        gap: 6px;
+        padding: 0;
+        margin: 0 0 20px;
+        list-style: none;
+        border-bottom: 2px solid #e0deff;
+    }
+
+    .admin-tab-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #6b7280;
+        background: none;
+        border: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        transition: all .2s;
+        font-family: inherit;
+    }
+
+    .admin-tab-btn:hover {
+        color: #6c5ce7;
+        background: #f8f7ff;
+    }
+
+    .admin-tab-btn.active {
+        color: #6c5ce7;
+        border-bottom-color: #6c5ce7;
+        background: #f0effe;
+    }
+
+    /* Override Bootstrap nav-link defaults so custom admin style wins */
+    .admin-tabs .nav-link {
+        border: none !important;
+        background: none !important;
+        color: #6b7280 !important;
+        padding: 10px 20px;
+    }
+
+    .admin-tabs .nav-link:hover {
+        color: #6c5ce7 !important;
+        background: #f8f7ff !important;
+        isolation: auto;
+    }
+
+    .admin-tabs .nav-link.active {
+        color: #6c5ce7 !important;
+        border-bottom: 3px solid #6c5ce7 !important;
+        background: #f0effe !important;
+    }
+
+    /* Cards / panels */
+    .admin-panel {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #e0deff;
+        box-shadow: 0 8px 28px rgba(108,92,231,0.06);
+        padding: 24px;
+        margin-bottom: 20px;
+    }
+
+    .admin-panel h4 {
+        font-size: 18px;
+        font-weight: 800;
+        color: #1a1a2e;
+        margin: 0 0 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .admin-panel h4::before {
+        content: '';
+        display: inline-block;
+        width: 4px;
+        height: 20px;
+        background: linear-gradient(180deg, #6c5ce7, #a78bfa);
+        border-radius: 2px;
+    }
+
+    /* Table */
+    .admin-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 14px;
+    }
+
+    .admin-table thead th {
+        background: linear-gradient(90deg, #f8f7ff, #f0effe);
+        color: #4a5568;
+        font-weight: 700;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 10px 14px;
+        border-bottom: 2px solid #e0deff;
+    }
+
+    .admin-table thead th:first-child {
+        border-radius: 10px 0 0 0;
+    }
+
+    .admin-table thead th:last-child {
+        border-radius: 0 10px 0 0;
+    }
+
+    .admin-table tbody tr {
+        transition: background .12s;
+    }
+
+    .admin-table tbody tr:hover {
+        background: #faf9ff;
+    }
+
+    .admin-table tbody td {
+        padding: 10px 14px;
+        border-bottom: 1px solid #f1f0f9;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    /* Buttons */
+    .admin-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        font-family: inherit;
+        transition: all .15s;
+        white-space: nowrap;
+    }
+
+    .admin-btn-view {
+        background: #eef2ff;
+        color: #4c51bf;
+    }
+
+    .admin-btn-view:hover {
+        background: #e0deff;
+        color: #3b3f9e;
+    }
+
+    .admin-btn-danger {
+        background: #fef2f2;
+        color: #dc2626;
+        border: 1px solid #fecaca;
+    }
+
+    .admin-btn-danger:hover {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .admin-btn-danger:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
+    .admin-btn-warn {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .admin-btn-warn:hover {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .admin-btn-secondary {
+        background: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+
+    .admin-btn-secondary:hover {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .admin-btn-primary {
+        background: linear-gradient(135deg, #6c5ce7 0%, #a78bfa 100%);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(108,92,231,0.2);
+    }
+
+    .admin-btn-primary:hover {
+        filter: brightness(1.05);
+        box-shadow: 0 4px 12px rgba(108,92,231,0.3);
+    }
+
+    /* Role badges */
+    .role-badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .role-admin {
+        background: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .role-owner {
+        background: #ede9fe;
+        color: #6d28d9;
+    }
+
+    .role-user {
+        background: #ecfdf5;
+        color: #065f46;
+    }
+
+    /* Empty state */
+    .admin-empty {
+        text-align: center;
+        padding: 40px 20px;
+        color: #9ca3af;
+    }
+
+    .admin-empty-icon {
+        font-size: 36px;
+        margin-bottom: 8px;
+    }
+
+    /* Modal override */
+    .admin-modal .modal-content {
+        border-radius: 14px;
+        border: 1px solid #e0deff;
+        box-shadow: 0 20px 60px rgba(108,92,231,0.12);
+    }
+
+    .admin-modal .modal-header {
+        background: linear-gradient(90deg, #f8f7ff, #f0effe);
+        border-bottom: 1px solid #e0deff;
+        border-radius: 14px 14px 0 0;
+        padding: 16px 20px;
+    }
+
+    .admin-modal .modal-title {
+        font-weight: 800;
+        color: #1a1a2e;
+        font-size: 17px;
+    }
+
+    .admin-modal .modal-body {
+        padding: 20px;
+    }
+
+    .admin-modal .modal-footer {
+        border-top: 1px solid #f1f0f9;
+        padding: 14px 20px;
+        gap: 8px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: #9ca3af;
+        font-weight: 700;
+        margin-bottom: 2px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        color: #1a1a2e;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .detail-price {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(90deg, #eef2ff, #f0effe);
+        color: #4c51bf;
+        font-weight: 800;
+        font-size: 16px;
+        padding: 4px 14px;
+        border-radius: 12px;
+    }
+
+    /* Stats row */
+    .admin-stats {
+        display: flex;
+        gap: 14px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .admin-stat-card {
+        flex: 1;
+        min-width: 160px;
+        background: #fff;
+        border: 1px solid #e0deff;
+        border-radius: 12px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 4px 14px rgba(108,92,231,0.04);
+    }
+
+    .admin-stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+    }
+
+    .admin-stat-icon.listings { background: #eef2ff; }
+    .admin-stat-icon.users { background: #ecfdf5; }
+    .admin-stat-icon.reports { background: #fef2f2; }
+
+    .admin-stat-num {
+        font-size: 22px;
+        font-weight: 800;
+        color: #1a1a2e;
+        line-height: 1;
+    }
+
+    .admin-stat-label {
+        font-size: 12px;
+        color: #9ca3af;
+        font-weight: 600;
+    }
+
+    /* Action button groups */
+    .admin-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .admin-actions form {
+        margin: 0;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .admin-tabs {
+            flex-wrap: wrap;
         }
-        else
-        {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Cím</th>
-                        <th>Tulaj</th>
-                        <th>Ár</th>
-                        <th style="width:260px;"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model.Listings)
-                    {
-                        <tr>
-                            <td>@item.Listing.Title</td>
-                            <td>@item.OwnerEmail</td>
-                            <td>@item.Listing.Price.ToHuf()</td>
-                            <td>
-                                <button class="btn btn-sm btn-info me-1" type="button" data-bs-toggle="modal" data-bs-target="#modal-listing-@item.Listing.Id">
-                                    Megtekintés
-                                </button>
 
-                                <a asp-page="/Listings/Edit" asp-route-azon="@item.Listing.Id" class="btn btn-sm btn-warning me-1">Szerkesztés</a>
+        .admin-tab-btn {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
 
-                                <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Törölni szeretnéd a hirdetést?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="azon" value="@item.Listing.Id" />
-                                    <button class="btn btn-sm btn-danger" type="submit">Törlés</button>
-                                </form>
-                            </td>
-                        </tr>
+        .admin-table {
+            font-size: 13px;
+        }
 
-                        <div class="modal fade" id="modal-listing-@item.Listing.Id" tabindex="-1" aria-labelledby="modalLabel-@item.Listing.Id" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="modalLabel-@item.Listing.Id">@item.Listing.Title</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="row">
-                                            <div class="col-md-5 mb-3">
-                                                <img src="@(item.Listing.ImageUrls.FirstOrDefault() ?? "/images/placeholder.png")" alt="Kép" class="img-fluid rounded" style="width:100%;height:auto;object-fit:cover;" />
+        .admin-table td, .admin-table th {
+            padding: 8px 10px;
+        }
+
+        .admin-stats {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="admin-wrap">
+
+    @* Header *@
+    <div class="admin-header">
+        <div class="admin-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4"/></svg>
+        </div>
+        <h1>Admin felület</h1>
+    </div>
+
+    @* Stats *@
+    <div class="admin-stats">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon listings">📦</div>
+            <div>
+                <div class="admin-stat-num">@(Model.Listings?.Count ?? 0)</div>
+                <div class="admin-stat-label">Hirdetés</div>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon users">👥</div>
+            <div>
+                <div class="admin-stat-num">@(Model.Users?.Count ?? 0)</div>
+                <div class="admin-stat-label">Felhasználó</div>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon reports">🚩</div>
+            <div>
+                <div class="admin-stat-num">@(Model.Reports?.Count ?? 0)</div>
+                <div class="admin-stat-label">Report</div>
+            </div>
+        </div>
+    </div>
+
+    @* Tabs *@
+    <ul class="admin-tabs nav nav-tabs" id="adminTabs" role="tablist" style="border-bottom:none;">
+        <li class="nav-item" role="presentation">
+            <button class="admin-tab-btn nav-link @(Model.SelectedTab == "listings" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-listings" type="button">📦 Hirdetések</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="admin-tab-btn nav-link @(Model.SelectedTab == "users" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-users" type="button">👥 Felhasználók</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="admin-tab-btn nav-link @(Model.SelectedTab == "reports" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-reports" type="button">🚩 Reportok</button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+
+        @* ═══ HIRDETÉSEK ═══ *@
+        <div class="tab-pane fade @(Model.SelectedTab == "listings" ? "show active" : "")" id="tab-listings" role="tabpanel">
+            <div class="admin-panel">
+                <h4>Összes hirdetés</h4>
+                @if (Model.Listings?.Any() != true)
+                {
+                    <div class="admin-empty">
+                        <div class="admin-empty-icon">📭</div>
+                        <div>Nincs hirdetés.</div>
+                    </div>
+                }
+                else
+                {
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Cím</th>
+                                <th>Tulaj</th>
+                                <th>Ár</th>
+                                <th style="width:240px;text-align:right;">Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Listings)
+                            {
+                                <tr>
+                                    <td style="font-weight:600;">@item.Listing.Title</td>
+                                    <td>@item.OwnerEmail</td>
+                                    <td><span class="detail-price" style="font-size:13px;padding:2px 10px;">@item.Listing.Price.ToHuf()</span></td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                                            <button class="admin-btn admin-btn-view" type="button" data-bs-toggle="modal" data-bs-target="#modal-listing-@item.Listing.Id">
+                                                👁 Megtekintés
+                                            </button>
+                                            <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Törölni szeretnéd a hirdetést?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="azon" value="@item.Listing.Id" />
+                                                <button class="admin-btn admin-btn-danger" type="submit">🗑 Törlés</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                @* Modal *@
+                                <div class="modal fade admin-modal" id="modal-listing-@item.Listing.Id" tabindex="-1" aria-labelledby="modalLabel-@item.Listing.Id" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="modalLabel-@item.Listing.Id">@item.Listing.Title</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <div class="col-md-7">
-                                                <p><strong>Ár:</strong> @item.Listing.Price.ToHuf()</p>
-                                                <p><strong>Tulaj:</strong> @item.OwnerEmail</p>
-                                                <p><strong>Kategória:</strong> @(item.Listing.CategoryName ?? "-")</p>
-                                                <p><strong>Állapot:</strong> @item.Listing.Condition</p>
-                                                <p><strong>Hely:</strong> @(item.Listing.Location ?? "-")</p>
-                                                <p><strong>Státusz:</strong> @(item.Listing.Status ?? "-")</p>
-                                                <p><strong>Létrehozva:</strong> @item.Listing.CreatedAt.ToString("yyyy-MM-dd")</p>
-                                                <hr />
-                                                <p><strong>Leírás:</strong></p>
-                                                <div style="white-space:pre-wrap;">@item.Listing.Description</div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-5 mb-3">
+                                                        <img src="@(item.Listing.ImageUrls.FirstOrDefault() ?? "/images/placeholder.png")" alt="Kép" style="width:100%;height:auto;object-fit:cover;border-radius:12px;border:1px solid #e0deff;" />
+                                                    </div>
+                                                    <div class="col-md-7">
+                                                        <div class="detail-label">Ár</div>
+                                                        <div class="detail-value"><span class="detail-price">@item.Listing.Price.ToHuf()</span></div>
+
+                                                        <div class="detail-label">Tulaj</div>
+                                                        <div class="detail-value">@item.OwnerEmail</div>
+
+                                                        <div class="detail-label">Kategória</div>
+                                                        <div class="detail-value">@(item.Listing.CategoryName ?? "-")</div>
+
+                                                        <div class="detail-label">Állapot</div>
+                                                        <div class="detail-value">@item.Listing.Condition</div>
+
+                                                        <div class="detail-label">Hely</div>
+                                                        <div class="detail-value">@(item.Listing.Location ?? "-")</div>
+
+                                                        <div class="detail-label">Státusz</div>
+                                                        <div class="detail-value">@(item.Listing.Status ?? "-")</div>
+
+                                                        <div class="detail-label">Létrehozva</div>
+                                                        <div class="detail-value">@item.Listing.CreatedAt.ToString("yyyy-MM-dd")</div>
+
+                                                        <hr style="border:none;height:1px;background:linear-gradient(90deg,#e0deff,transparent);margin:12px 0;" />
+
+                                                        <div class="detail-label">Leírás</div>
+                                                        <div style="white-space:pre-wrap;font-size:14px;color:#374151;line-height:1.6;">@item.Listing.Description</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Biztosan törlöd ezt a hirdetést?');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="azon" value="@item.Listing.Id" />
+                                                    <button class="admin-btn admin-btn-danger" type="submit">🗑 Törlés</button>
+                                                </form>
+                                                <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Bezár</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="modal-footer">
-                                        <a asp-page="/Listings/Edit" asp-route-azon="@item.Listing.Id" class="btn btn-warning">Szerkesztés</a>
-
-                                        <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Biztosan törlöd ezt a hirdetést?');">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="azon" value="@item.Listing.Id" />
-                                            <button class="btn btn-danger" type="submit">Törlés</button>
-                                        </form>
-
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
-                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
 
-    <div class="tab-pane fade @(Model.SelectedTab == "users" ? "show active" : "")" id="tab-users" role="tabpanel">
-        <h4>Felhasználók</h4>
-        @if (Model.Users?.Any() != true)
-        {
-            <p>Nincs felhasználó.</p>
-        }
-        else
-        {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Felhasználónév</th>
-                        <th>Email</th>
-                        <th>Szerep</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var u in Model.Users)
-                    {
-                        <tr>
-                            <td>@u.Username</td>
-                            <td>@u.Email</td>
-                            <td>@(u.Roles?.Any() == true ? string.Join(", ", u.Roles) : "User")</td>
-                            <td>
-                                <form method="post" asp-page-handler="DeleteUser" class="d-inline">
-                                    <input type="hidden" name="id" value="@u.Id" />
-                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">Töröl</button>
-                                </form>
+        @* ═══ FELHASZNÁLÓK ═══ *@
+        <div class="tab-pane fade @(Model.SelectedTab == "users" ? "show active" : "")" id="tab-users" role="tabpanel">
+            <div class="admin-panel">
+                <h4>Felhasználók</h4>
+                @if (Model.Users?.Any() != true)
+                {
+                    <div class="admin-empty">
+                        <div class="admin-empty-icon">👤</div>
+                        <div>Nincs felhasználó.</div>
+                    </div>
+                }
+                else
+                {
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Felhasználónév</th>
+                                <th>Email</th>
+                                <th>Szerep</th>
+                                <th style="text-align:right;">Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var u in Model.Users)
+                            {
+                                <tr>
+                                    <td style="font-weight:600;">@u.Username</td>
+                                    <td>@u.Email</td>
+                                    <td>
+                                        @{
+                                            var roles = u.Roles ?? new List<string>();
+                                            var roleName = roles.Any() ? string.Join(", ", roles) : "User";
+                                            var roleClass = roles.Any(r => string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase)) ? "role-admin"
+                                                : roles.Any(r => string.Equals(r, "Owner", StringComparison.OrdinalIgnoreCase) || string.Equals(r, "Tulaj", StringComparison.OrdinalIgnoreCase)) ? "role-owner"
+                                                : "role-user";
+                                            var isProtectedUser = roles.Any(r =>
+                                                string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                                                string.Equals(r, "Tulaj", StringComparison.OrdinalIgnoreCase) ||
+                                                string.Equals(r, "Owner", StringComparison.OrdinalIgnoreCase));
+                                        }
+                                        <span class="role-badge @roleClass">@roleName</span>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <div class="admin-actions">
+                                            @if (!isProtectedUser)
+                                            {
+                                                <form method="post" asp-page-handler="DeleteUser">
+                                                    <input type="hidden" name="id" value="@u.Id" />
+                                                    <button class="admin-btn admin-btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">🗑 Töröl</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <button class="admin-btn admin-btn-danger" type="button" disabled title="Admin, Tulaj vagy Owner felhasználó nem törölhető">🗑 Töröl</button>
+                                            }
 
-                                @if (AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
-                                {
-                                    var current = (u.Roles?.FirstOrDefault() ?? "User");
-                                    if (!string.Equals(current, "User", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <form method="post" asp-page-handler="SetUserRole" class="d-inline ms-1">
-                                            <input type="hidden" name="id" value="@u.Id" />
-                                            <input type="hidden" name="role" value="User" />
-                                            <button class="btn btn-sm btn-secondary" type="submit" onclick="return confirm('Felhasználóként szeretnéd beállítani?');">Beállít felhasználónak</button>
-                                        </form>
-                                    }
-                                    if (!string.Equals(current, "Admin", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        <form method="post" asp-page-handler="SetUserRole" class="d-inline ms-1">
-                                            <input type="hidden" name="id" value="@u.Id" />
-                                            <input type="hidden" name="role" value="Admin" />
-                                            <button class="btn btn-sm btn-warning" type="submit" onclick="return confirm('Admin szerepet szeretnél adni ennek a felhasználónak?');">Beállít adminnak</button>
-                                        </form>
-                                    }
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
+                                            @if (AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
+                                            {
+                                                var current = (u.Roles?.FirstOrDefault() ?? "User");
+                                                if (!string.Equals(current, "User", StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    <form method="post" asp-page-handler="SetUserRole">
+                                                        <input type="hidden" name="id" value="@u.Id" />
+                                                        <input type="hidden" name="role" value="User" />
+                                                        <button class="admin-btn admin-btn-secondary" type="submit" onclick="return confirm('Felhasználóként szeretnéd beállítani?');">👤 Felhasználó</button>
+                                                    </form>
+                                                }
+                                                if (!string.Equals(current, "Admin", StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    <form method="post" asp-page-handler="SetUserRole">
+                                                        <input type="hidden" name="id" value="@u.Id" />
+                                                        <input type="hidden" name="role" value="Admin" />
+                                                        <button class="admin-btn admin-btn-warn" type="submit" onclick="return confirm('Admin szerepet szeretnél adni?');">🛡 Admin</button>
+                                                    </form>
+                                                }
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
 
-    <div class="tab-pane fade @(Model.SelectedTab == "reports" ? "show active" : "")" id="tab-reports" role="tabpanel">
-        <h4>Reportok</h4>
-        @if (Model.Reports?.Any() != true)
-        {
-            <p>Nincs report.</p>
-        }
-        else
-        {
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Leírás</th>
-                        <th>Jelentette</th>
-                        <th>Dátum</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in Model.Reports)
-                    {
-                        <tr>
-                            <td style="max-width:45ch;white-space:normal;overflow-wrap:break-word;">@r.Description</td>
-                            <td>@(string.IsNullOrWhiteSpace(r.ReporterUsername) ? (r.ReporterEmail ?? "-") : r.ReporterUsername)</td>
-                            <td>@(r.ReportedAt?.ToString("yyyy-MM-dd") ?? "-")</td>
-                            <td>
-                                <a asp-page="/Listings/Details"
-                                   asp-route-azon="@r.ListingId"
-                                   asp-route-returnUrl="@(Url.Page("/Admin/Index", new { SelectedTab = "reports" }))"
-                                   class="btn btn-sm btn-info me-1">
-                                    Megnyit
-                                </a>
+        @* ═══ REPORTOK ═══ *@
+        <div class="tab-pane fade @(Model.SelectedTab == "reports" ? "show active" : "")" id="tab-reports" role="tabpanel">
+            <div class="admin-panel">
+                <h4>Reportolt hirdetések</h4>
+                @if (Model.Reports?.Any() != true)
+                {
+                    <div class="admin-empty">
+                        <div class="admin-empty-icon">✅</div>
+                        <div>Nincs report.</div>
+                    </div>
+                }
+                else
+                {
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Leírás</th>
+                                <th>Jelentette</th>
+                                <th>Dátum</th>
+                                <th style="text-align:right;">Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in Model.Reports)
+                            {
+                                <tr>
+                                    <td style="max-width:40ch;white-space:normal;overflow-wrap:break-word;line-height:1.5;">@r.Description</td>
+                                    <td style="font-weight:600;">@(string.IsNullOrWhiteSpace(r.ReporterUsername) ? (r.ReporterEmail ?? "-") : r.ReporterUsername)</td>
+                                    <td>@(r.ReportedAt?.ToString("yyyy-MM-dd") ?? "-")</td>
+                                    <td style="text-align:right;">
+                                        <div class="admin-actions">
+                                            <a asp-page="/Listings/Details"
+                                               asp-route-azon="@r.ListingId"
+                                               asp-route-returnUrl="@(Url.Page("/Admin/Index", new { SelectedTab = "reports" }))"
+                                               class="admin-btn admin-btn-view">
+                                                👁 Megnyit
+                                            </a>
 
-                                <form method="post" asp-page-handler="DeleteReport" class="d-inline">
-                                    <input type="hidden" name="id" value="@r.ReportId" />
-                                    <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a reportot?');">Report Törlése</button>
-                                </form>
+                                            <form method="post" asp-page-handler="DeleteReport" class="d-inline">
+                                                <input type="hidden" name="id" value="@r.ReportId" />
+                                                <button class="admin-btn admin-btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a reportot?');">🗑 Report törlése</button>
+                                            </form>
 
-                                @* NEW: Delete both the reported listing and the report *@
-                                <form method="post" asp-page-handler="DeleteListingAndReport" class="d-inline ms-1" onsubmit="return confirm('Törölni szeretnéd a hirdetést és a hozzá tartozó reportot?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="listingId" value="@r.ListingId" />
-                                    <input type="hidden" name="reportId" value="@r.ReportId" />
-                                    <button class="btn btn-sm btn-danger" type="submit">Hírdetés és report törlése</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
+                                            <form method="post" asp-page-handler="DeleteListingAndReport" onsubmit="return confirm('Törölni szeretnéd a hirdetést és a reportot?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="listingId" value="@r.ListingId" />
+                                                <input type="hidden" name="reportId" value="@r.ReportId" />
+                                                <button class="admin-btn admin-btn-danger" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;" type="submit">⚠ Mindkettő törlése</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
     </div>
 </div>
 

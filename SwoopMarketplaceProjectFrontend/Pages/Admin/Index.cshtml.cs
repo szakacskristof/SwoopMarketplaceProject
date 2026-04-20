@@ -17,13 +17,15 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
         private readonly UserApi _userApi;
         private readonly ReportApi _reportApi;
         private readonly AdminApi _adminApi;
+        private readonly AuthSession _authSession;
 
-        public IndexModel(ListingApi listingApi, UserApi userApi, ReportApi reportApi, AdminApi adminApi)
+        public IndexModel(ListingApi listingApi, UserApi userApi, ReportApi reportApi, AdminApi adminApi, AuthSession authSession)
         {
             _listingApi = listingApi;
             _userApi = userApi;
             _reportApi = reportApi;
             _adminApi = adminApi;
+            _authSession = authSession;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -35,14 +37,10 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
 
         public async Task OnGetAsync()
         {
-            // load everything (small project - acceptable)
             Listings = await _listingApi.GetAllWithOwnersAsync();
             Users = await _userApi.GetAllAsync();
             Reports = await _reportApi.GetAllAsync();
 
-            // Enrich reports with reporter info (email/username).
-            // The backend Reports API currently returns only the raw report record,
-            // so we use the UserApi to look up the reporting user's public info.
             if (Reports?.Any() == true)
             {
                 foreach (var r in Reports)
@@ -58,7 +56,6 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
                     }
                     catch
                     {
-                        // ignore enrichment errors to keep admin page usable
                     }
                 }
             }
@@ -82,14 +79,39 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
         {
             try
             {
+                var targetUser = await _userApi.GetByAzonAsync(id);
+
+                if (targetUser == null)
+                {
+                    TempData["Error"] = "A felhasználó nem található.";
+                    return RedirectToPage(new { SelectedTab = "users" });
+                }
+
+                var targetRoles = targetUser.Roles ?? new List<string>();
+                var targetIsProtected = targetRoles.Any(r =>
+                    string.Equals(r, "Admin", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(r, "Tulaj", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(r, "Owner", StringComparison.OrdinalIgnoreCase));
+
+                var currentIsAdminOnly =
+                    _authSession.IsInRole("Admin") &&
+                    !_authSession.IsInRole("Tulaj") &&
+                    !_authSession.IsInRole("Owner");
+
+                if (currentIsAdminOnly && targetIsProtected)
+                {
+                    TempData["Error"] = "Admin nem törölhet Admin, Tulaj vagy Owner szerepkörû felhasználót.";
+                    return RedirectToPage(new { SelectedTab = "users" });
+                }
+
                 await _userApi.DeleteAsync(id);
                 TempData["Message"] = "Felhasználó törölve.";
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message; 
-
+                TempData["Error"] = ex.Message;
             }
+
             return RedirectToPage(new { SelectedTab = "users" });
         }
 
@@ -107,18 +129,12 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             return RedirectToPage(new { SelectedTab = "reports" });
         }
 
-        // NEW: delete both listing and its report
         public async Task<IActionResult> OnPostDeleteListingAndReportAsync(int listingId, long reportId)
         {
             try
             {
-                // Delete listing first (requires auth header in ListingApi)
                 await _listingApi.DeleteAsync(listingId);
-
-                // Delete any report(s) referencing that listing.
-                // Use new API that deletes by listing id to avoid NotFound when a single report id is stale.
                 await _reportApi.DeleteByListingAsync(listingId);
-
                 TempData["Message"] = "Hirdetés és report törölve.";
             }
             catch (Exception ex)
@@ -129,12 +145,10 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             return RedirectToPage(new { SelectedTab = "reports" });
         }
 
-        // Csak Owner/Tulaj: szerep beállítása (frontend hívja a backend admin endpointot)
         public async Task<IActionResult> OnPostSetUserRoleAsync(long id, string role)
         {
             try
             {
-                // Prevent assigning the 'Tulaj' role from the admin Razor page
                 if (string.Equals(role, "Tulaj", StringComparison.OrdinalIgnoreCase))
                 {
                     TempData["Error"] = "A 'Tulaj' szerep az admin oldalon nem állítható.";

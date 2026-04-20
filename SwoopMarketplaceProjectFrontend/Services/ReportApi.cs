@@ -32,10 +32,15 @@ namespace SwoopMarketplaceProjectFrontend.Services
             r.EnsureSuccessStatusCode();
         }
 
-        // NEW: delete all reports for a listing
+        // Delete all reports for a listing.
+        // Treat 404 as success so deleting the listing first does not fail the admin flow.
         public async Task DeleteByListingAsync(long listingId)
         {
             var r = await _f.CreateClient("SwoopApi").DeleteAsync($"api/Reports/by-listing/{listingId}");
+
+            if (r.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return;
+
             r.EnsureSuccessStatusCode();
         }
     }
