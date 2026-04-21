@@ -19,9 +19,51 @@
 }
 
 <style>
-    /* ---- Modal style (kept) ---- */
+    /* ---- Details page layout ---- */
+    .details-layout {
+        max-width: 1100px;
+        margin: 18px auto;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .details-gallery {
+        flex: 1 1 580px;
+        min-width: 0;
+    }
+
+    .details-aside {
+        width: 340px;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .details-title-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .details-title-row h1 {
+        margin: 0;
+        font-size: clamp(18px, 4vw, 26px);
+        flex: 1;
+    }
+
+    /* Carousel height responsive */
+    .listing-carousel-inner {
+        height: 420px;
+    }
+
+    /* ---- Modal style ---- */
     #listingModal .modal-dialog {
         max-width: 90vw;
+        margin: 0.5rem auto;
     }
 
     #listingModal .modal-content {
@@ -51,62 +93,121 @@
         cursor: pointer;
     }
 
-    #listingModal .carousel-control-prev-icon,
+    /* make carousel arrows clearly visible on dark modal */
+    #listingModal .carousel-control-prev,
+    #listingModal .carousel-control-next {
+        width: 44px;
+        height: 44px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0.95;
+    }
+
+    #listingModal .carousel-control-prev-icon {
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ffffff' d='M11.354 1.646a.5.5 0 0 0-.708 0L4.5 7.793l6.146 6.147a.5.5 0 0 0 .708-.708L5.707 8 11.354 2.354a.5.5 0 0 0 0-.708z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 18px 18px;
+        filter: none;
+    }
+
     #listingModal .carousel-control-next-icon {
-        filter: invert(1);
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23ffffff' d='M4.646 1.646a.5.5 0 0 1 .708 0L11 7.293 4.646 13.94a.5.5 0 1 1-.708-.708L9.293 7.293 3.938 1.646a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 18px 18px;
+        filter: none;
     }
 
     /* ---- Disable slide animation ONLY inside the modal carousel ---- */
-    #listingModal #listingModalCarousel .carousel-item {
-        transition: none !important;
-    }
+    #listingModal #listingModalCarousel .carousel-item { transition: none !important; }
+    #listingModal #listingModalCarousel .carousel-item-next,
+    #listingModal #listingModalCarousel .carousel-item-prev,
+    #listingModal #listingModalCarousel .carousel-item.active { transition: none !important; }
 
-        #listingModal #listingModalCarousel .carousel-item-next,
-        #listingModal #listingModalCarousel .carousel-item-prev,
-        #listingModal #listingModalCarousel .carousel-item.active {
-            transition: none !important;
-        }
-
-    /* ---- Zoom (no animation) ---- */
+    /* ---- Zoom (centered, consistent size) ---- */
     #listingModal .zoom-stage {
+        position: relative;
+        width: 100%;
         height: 80vh;
-        width: min(92vw, 1200px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        max-width: 100%;
+        display: block;
         overflow: hidden;
-        cursor: zoom-in;
-        transform-origin: center center;
-        transition: none; /* no zoom animation */
+        cursor: default;
+        margin: 0 auto;
     }
-
-        #listingModal .zoom-stage.zoomed-in {
-            transform: scale(1.5);
-            cursor: zoom-out;
-        }
 
     #listingModal img.modal-image {
-        width: 100%;
-        height: 100%;
+        width: min(1100px, 80vw);
+        height: min(75vh, 800px);
         object-fit: contain;
-        display: block;
-        pointer-events: none; /* click handled on stage */
-        user-select: none;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
     }
 
-    /* thumbs highlight (optional) */
+    /* ---- Thumbs ---- */
     .gallery-thumb {
-        width: 88px;
-        height: 64px;
+        width: 80px;
+        height: 58px;
         object-fit: cover;
         border-radius: 8px;
         border: 2px solid transparent;
         opacity: .85;
     }
 
-        .gallery-thumb:hover {
-            opacity: 1;
+    .gallery-thumb:hover { opacity: 1; }
+
+    /* ---- Responsive ---- */
+    @@media (max-width: 760px) {
+        .details-layout {
+            flex-direction: column;
+            margin: 12px auto;
+            gap: 14px;
         }
+
+        .details-gallery {
+            flex: none;
+            width: 100%;
+        }
+
+        .details-aside {
+            width: 100%;
+        }
+
+        .listing-carousel-inner {
+            height: 280px;
+        }
+
+        #listingModal .zoom-stage {
+            height: 60vh;
+        }
+
+        #listingModal img.modal-image {
+            width: 95vw;
+            height: 58vh;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .listing-carousel-inner {
+            height: 220px;
+        }
+
+        .gallery-thumb {
+            width: 60px;
+            height: 44px;
+        }
+
+        #listingModal .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 17px;
+            right: 8px;
+            top: 8px;
+        }
+    }
 </style>
 
 @if (Model.Listing is null)
@@ -121,13 +222,11 @@ else
 {
     var l = Model.Listing;
     var avatar = !string.IsNullOrWhiteSpace(Model.OwnerProfileImageUrl) ? Model.OwnerProfileImageUrl : GravatarUrl(Model.OwnerEmail);
-
     var imageList = l!.ImageUrls ?? new List<string>();
     var images = imageList.Any() ? imageList : new List<string> { "/images/placeholder.png" };
 
-    <div style="display:flex;align-items:center;gap:8px;">
-        <h1 style="margin:auto">@l.Title</h1>
-
+    <div class="details-title-row">
+        <h1>@l.Title</h1>
         <form method="post" asp-page-handler="ToggleBookmark" style="margin:0;">
             <input type="hidden" name="azon" value="@l.Id" />
             <button type="submit" title="Könyvjelző ki/be" style="background:none;border:none;padding:6px;cursor:pointer;">
@@ -147,12 +246,12 @@ else
         </form>
     </div>
 
-    <div style="max-width:1100px;margin:18px auto;display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start;">
+    <div class="details-layout">
         <!-- Left / gallery -->
-        <section style="flex:1 1 640px;min-width:320px;">
+        <section class="details-gallery">
             <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(2,6,23,0.06);padding:0;">
                 <div id="listingCarousel" class="carousel slide" data-bs-ride="false" data-bs-touch="true">
-                    <div class="carousel-inner" style="height:460px;">
+                    <div class="carousel-inner listing-carousel-inner">
                         @for (int i = 0; i < images.Count; i++)
                         {
                             var url = images[i];
@@ -162,7 +261,6 @@ else
                             </div>
                         }
                     </div>
-
                     @if (images.Count > 1)
                     {
                         <button class="carousel-control-prev" type="button" data-bs-target="#listingCarousel" data-bs-slide="prev" aria-label="Előző">
@@ -187,6 +285,7 @@ else
                     </div>
                 }
 
+                <!-- Modal -->
                 <div class="modal fade" id="listingModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-xl modal-dialog-centered">
                         <div class="modal-content">
@@ -205,7 +304,6 @@ else
                                             </div>
                                         }
                                     </div>
-
                                     @if (images.Count > 1)
                                     {
                                         <button class="carousel-control-prev" type="button" data-bs-target="#listingModalCarousel" data-bs-slide="prev" aria-label="Előző">
@@ -221,37 +319,34 @@ else
                     </div>
                 </div>
 
-                <div style="padding:16px;">
-                    <h1 style="margin:0 0 8px;font-size:22px;font-weight:800;color:#111">@l.Title</h1>
-                    <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@l.Price.ToHuf()
+                <div style="padding:14px;">
+                    <h1 style="margin:0 0 8px;font-size:clamp(16px,4vw,22px);font-weight:800;color:#111">@l.Title</h1>
+                    <div style="font-weight:700;font-size:15px;margin-bottom:6px;line-height:1.2;">@l.Price.ToHuf()</div>
                     <div style="color:#6b7280;font-size:13px;margin-bottom:12px">@((l.Location ?? "Ismeretlen hely")) • @l.CreatedAt.ToString("yyyy-MM-dd")</div>
-
-                    <div style="color:#333;line-height:1.5;font-size:15px;padding:12px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:8px;border:1px solid #f1f5f9;">
+                    <div style="color:#333;line-height:1.6;font-size:15px;padding:12px;background:linear-gradient(180deg,#fff,#fbfdff);border-radius:8px;border:1px solid #f1f5f9;word-break:break-word;">
                         @l.Description
                     </div>
-
                     <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
-                        <span style="padding:8px 10px;border-radius:10px;background:#f7f9fc;color:#374151;font-weight:700">Állapot: @ConditionMapper.FriendlyName(l.Condition)</span>
+                        <span style="padding:8px 10px;border-radius:10px;background:#f7f9fc;color:#374151;font-weight:700;font-size:13px;">Állapot: @ConditionMapper.FriendlyName(l.Condition)</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Right / seller & actions -->
-        <aside style="width:360px;min-width:280px;display:flex;flex-direction:column;gap:12px">
+        <aside class="details-aside">
             <div style="background:#fff;padding:16px;border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.06)">
                 <div style="display:flex;gap:12px;align-items:center">
-                    <div style="width:72px;height:72px;border-radius:999px;overflow:hidden;box-shadow:0 8px 20px rgba(12,18,44,0.06)">
+                    <div style="width:64px;height:64px;border-radius:999px;overflow:hidden;flex-shrink:0;box-shadow:0 8px 20px rgba(12,18,44,0.06)">
                         <img src="@avatar" alt="Eladó" style="width:100%;height:100%;object-fit:cover;display:block" />
                     </div>
-                    <div style="flex:1">
-                        <div style="font-weight:800;font-size:16px;color:#111">@((Model.OwnerUserName ?? "Eladó"))</div>
-                        <div style="font-size:13px;color:#6b7280">@Model.OwnerEmail</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:800;font-size:15px;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@((Model.OwnerUserName ?? "Eladó"))</div>
+                        <div style="font-size:13px;color:#6b7280;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@Model.OwnerEmail</div>
                         @if (!string.IsNullOrWhiteSpace(Model.OwnerPhone))
                         {
                             <div style="font-size:13px;color:#6b7280;margin-top:4px">
-                                Telefon:
-                                <a href="tel:@Model.OwnerPhone" style="color:#111;font-weight:700;text-decoration:none;margin-left:6px">@Model.OwnerPhone</a>
+                                📞 <a href="tel:@Model.OwnerPhone" style="color:#111;font-weight:700;text-decoration:none;">@Model.OwnerPhone</a>
                             </div>
                         }
                     </div>
@@ -263,46 +358,41 @@ else
                         <a asp-page="/Messages/Conversation"
                            asp-route-to="@(Model.Listing?.UserId ?? 0)"
                            asp-route-listing="@(Model.Listing?.Id ?? 0)"
-                           style="flex:1;padding:10px 12px;background:linear-gradient(90deg,#6c5ce7,#7F77DD);color:#fff;border-radius:10px;text-decoration:none;font-weight:800;text-align:center">
+                           style="flex:1;padding:10px 12px;background:linear-gradient(90deg,#6c5ce7,#7F77DD);color:#fff;border-radius:10px;text-decoration:none;font-weight:800;text-align:center;min-width:120px;">
                             Üzenet küldése
                         </a>
                     }
-
-                    @* Show return link to admin when ReturnUrl is present; otherwise fallback to local Index *@
                     @if (!string.IsNullOrWhiteSpace(Model.ReturnUrl))
                     {
-                        <a href="@Model.ReturnUrl" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Vissza az admin oldalra</a>
+                        <a href="@Model.ReturnUrl" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;min-width:100px;">Vissza az admin oldalra</a>
                     }
                     else
                     {
-                        <a asp-page="./Index" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center">Vissza</a>
+                        <a asp-page="./Index" style="flex:1;padding:10px 12px;background:#eef2ff;color:#4c51bf;border-radius:10px;text-decoration:none;font-weight:700;text-align:center;min-width:80px;">Vissza</a>
                     }
                 </div>
             </div>
 
-            <!-- ✅ VISSZARAKOTT: Biztonság és jelentés + Jelentés gomb -->
             <div style="background:#fff;padding:14px;border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.04)">
                 <div style="font-weight:800;color:#111;margin-bottom:8px">Biztonság és jelentés</div>
-                <div style="color:#6b7280;font-size:14px;margin-bottom:10px">Találtál valami gyanúsat? Jelentheted ezt a hirdetést.</div>
-                <div style="display:flex;gap:8px">
+                <div style="color:#6b7280;font-size:13px;margin-bottom:10px">Találtál valami gyanúsat? Jelentheted ezt a hirdetést.</div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
                     <a asp-page="/Reports/Create"
                        asp-route-listingId="@l.Id"
-                       style="flex:1;padding:8px 10px;background:#fff7ed;color:#c2410c;border-radius:8px;text-decoration:none;font-weight:700;text-align:center">
+                       style="flex:1;padding:8px 10px;background:#fff7ed;color:#c2410c;border-radius:8px;text-decoration:none;font-weight:700;text-align:center;min-width:80px;">
                         Jelentés
                     </a>
-
                     @if (Model.CanEdit)
                     {
                         <a asp-page="./Edit"
                            asp-route-azon="@l.Id"
-                           style="flex:1;padding:8px 10px;background:#eef2ff;color:#4c51bf;border-radius:8px;text-decoration:none;font-weight:700;text-align:center">
+                           style="flex:1;padding:8px 10px;background:#eef2ff;color:#4c51bf;border-radius:8px;text-decoration:none;font-weight:700;text-align:center;min-width:80px;">
                             Szerkesztés
                         </a>
                     }
-
                     @if (Model.CanDelete)
                     {
-                        <form method="post" asp-page-handler="Delete" style="flex:1;margin:0" onsubmit="return confirm('Biztosan törölni szeretnéd ezt a hirdetést?');">
+                        <form method="post" asp-page-handler="Delete" style="flex:1;margin:0;min-width:80px;" onsubmit="return confirm('Biztosan törölni szeretnéd ezt a hirdetést?');">
                             <input type="hidden" name="azon" value="@l.Id" />
                             <button type="submit" class="btn" style="width:100%;padding:8px 10px;background:#fff1f2;color:#ef4444;border-radius:8px;font-weight:700">Törlés</button>
                         </form>
@@ -319,12 +409,11 @@ else
                 var carouselEl = document.getElementById('listingCarousel');
                 if (!carouselEl) return;
 
-                // Modal (use the proven old behavior: show modal + move to correct index)
                 var modalEl = document.getElementById('listingModal');
                 var modalCarouselEl = document.getElementById('listingModalCarousel');
                 if (!modalEl || !modalCarouselEl) return;
 
-                var modal = new bootstrap.Modal(modalEl, { backdrop: false, keyboard: true });
+                var modal = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true });
 
                 function modalCarouselInstance() {
                     return bootstrap.Carousel.getOrCreateInstance(modalCarouselEl, { touch: true, wrap: true, interval: false });
@@ -334,6 +423,10 @@ else
                     modalEl.querySelectorAll('.zoom-stage.zoomed-in').forEach(function (s) {
                         s.classList.remove('zoomed-in');
                     });
+                }
+
+                function anyZoomed() {
+                    return !!modalEl.querySelector('.zoom-stage.zoomed-in');
                 }
 
                 document.querySelectorAll('#listingCarousel .carousel-item img').forEach(function (img) {
@@ -354,14 +447,12 @@ else
                     });
                 });
 
-                // keep sliding stable: always unzoom when slide starts
-                modalCarouselEl.addEventListener('slide.bs.carousel', resetZoom);
+                modalCarouselEl.addEventListener('slide.bs.carousel', function () { resetZoom(); });
 
-                // click to toggle zoom (no animation)
-                modalCarouselEl.addEventListener('click', function (e) {
-                    var stage = e.target.closest('.zoom-stage');
-                    if (!stage) return;
-                    stage.classList.toggle('zoomed-in');
+                modalCarouselEl.querySelectorAll('.carousel-control-prev, .carousel-control-next').forEach(function (btn) {
+                    btn.addEventListener('click', function (e) {
+                        if (anyZoomed()) { e.stopPropagation(); e.preventDefault(); }
+                    }, true);
                 });
 
                 var modalCloseBtn = document.getElementById('listingModalClose');
@@ -370,6 +461,17 @@ else
                 modalEl.addEventListener('click', function (e) {
                     if (e.target === modalEl) modal.hide();
                 });
+
+                modalEl.addEventListener('hidden.bs.modal', function () { resetZoom(); });
+
+                window.addEventListener('keydown', function (e) {
+                    if (!modalEl.classList.contains('show')) return;
+                    if (!anyZoomed()) return;
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }
+                }, true);
             })();
         </script>
     }

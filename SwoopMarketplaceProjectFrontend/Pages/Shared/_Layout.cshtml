@@ -24,7 +24,7 @@
         .swoop-nav {
             background: #fff;
             border-bottom: 1px solid #ebebf0;
-            padding: 0 0;
+            padding: 0;
             position: sticky;
             top: 0;
             z-index: 1000;
@@ -36,6 +36,7 @@
             align-items: center;
             height: 60px;
             gap: 8px;
+            flex-wrap: nowrap;
         }
 
         /* Logo */
@@ -71,6 +72,7 @@
             padding: 6px 12px;
             border-radius: 8px;
             transition: background .15s, color .15s;
+            white-space: nowrap;
         }
 
         .swoop-nav-link:hover {
@@ -84,12 +86,17 @@
             align-items: center;
             gap: 8px;
             margin-left: auto;
+            flex-shrink: 0;
         }
 
         .swoop-username {
             font-size: 14px;
             font-weight: 600;
             color: #1a1a2e;
+            white-space: nowrap;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .swoop-badge {
@@ -120,6 +127,7 @@
             border-radius: 8px;
             font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             transition: background .15s, color .15s;
+            white-space: nowrap;
         }
 
         .swoop-btn-logout:hover {
@@ -136,11 +144,10 @@
             border: 1px solid #d4d0f8;
             border-radius: 8px;
             transition: background .15s;
+            white-space: nowrap;
         }
 
-        .swoop-btn-login:hover {
-            background: #f0effe;
-        }
+        .swoop-btn-login:hover { background: #f0effe; }
 
         .swoop-btn-register {
             font-size: 13px;
@@ -151,12 +158,10 @@
             background: #6c5ce7;
             border-radius: 8px;
             transition: background .15s;
+            white-space: nowrap;
         }
 
-        .swoop-btn-register:hover {
-            background: #534AB7;
-            color: #fff;
-        }
+        .swoop-btn-register:hover { background: #534AB7; color: #fff; }
 
         /* Avatar */
         .swoop-nav-avatar {
@@ -176,12 +181,84 @@
             display: block;
         }
 
+        /* ── Hamburger ── */
+        .swoop-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            color: #1a1a2e;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* ── Mobile drawer ── */
+        .swoop-mobile-menu {
+            display: none;
+            flex-direction: column;
+            background: #fff;
+            border-top: 1px solid #ebebf0;
+            padding: 12px 16px 16px;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(26,26,46,0.08);
+        }
+
+        .swoop-mobile-menu.open {
+            display: flex;
+        }
+
+        .swoop-mobile-link {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: background .15s, color .15s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .swoop-mobile-link:hover {
+            background: #f0effe;
+            color: #6c5ce7;
+        }
+
+        .swoop-mobile-divider {
+            height: 1px;
+            background: #f0effe;
+            margin: 4px 0;
+        }
+
+        .swoop-mobile-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            margin-bottom: 4px;
+        }
+
+        .swoop-mobile-logout {
+            font-size: 14px;
+            font-weight: 600;
+            color: #b91c1c;
+            background: #fef2f2;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            width: 100%;
+        }
+
         /* ── Main content ── */
         .swoop-main {
-            /* use flex-grow instead of hard calc; body is a column flex container */
             flex: 1 1 auto;
-            min-height: 0; /* allow flex children to shrink correctly */
-            padding: 2rem 0 3rem;
+            min-height: 0;
+            padding: 1.5rem 0 3rem;
         }
 
         /* ── Footer ── */
@@ -198,18 +275,16 @@
             text-decoration: none;
         }
 
-        .swoop-footer a:hover {
-            text-decoration: underline;
-        }
+        .swoop-footer a:hover { text-decoration: underline; }
 
         /* ── Floating CTA ── */
         .fab {
             position: fixed;
-            right: 24px;
-            bottom: 28px;
+            right: 20px;
+            bottom: 24px;
             background: #6c5ce7;
             color: #fff;
-            padding: 13px 20px;
+            padding: 12px 18px;
             border-radius: 999px;
             box-shadow: 0 8px 28px rgba(108,92,231,0.30);
             font-weight: 800;
@@ -236,8 +311,59 @@
             line-height: 1;
         }
 
-        .fab-label {
-            line-height: 1.2;
+        .fab-label { line-height: 1.2; }
+
+        /* ── Responsive breakpoints ── */
+
+        /* Tablet: hide nav-link text labels at ~900px, keep icons */
+        @@media (max-width: 900px) {
+            .swoop-username {
+                display: none;
+            }
+        }
+
+        /* Mobile: show hamburger, hide desktop nav */
+        @@media (max-width: 640px) {
+            .swoop-nav-links {
+                display: none;
+            }
+
+            .swoop-nav-right {
+                display: none;
+            }
+
+            .swoop-hamburger {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .swoop-logo img {
+                height: 38px !important;
+            }
+
+            .swoop-logo-text {
+                font-size: 17px;
+            }
+
+            .swoop-main {
+                padding: 1rem 0 2.5rem;
+            }
+
+            .fab {
+                right: 14px;
+                bottom: 16px;
+                padding: 10px 14px;
+                gap: 8px;
+            }
+
+            .fab-label div {
+                font-size: 12px !important;
+            }
+
+            .fab small {
+                display: none;
+            }
         }
     </style>
 </head>
@@ -249,9 +375,10 @@
                 @* Logo *@
                 <a class="swoop-logo" asp-area="" asp-page="/Index">
                     <img src="https://localhost:7000/images/swooplogo.png" alt="Swoop" height="52" style="max-width:180px; object-fit:contain;" />
+                    <span class="swoop-logo-text">Swoop</span>
                 </a>
 
-                @* Left nav links *@
+                @* Desktop: Left nav links (signed in only) *@
                 @if (AuthSession.IsSignedIn)
                 {
                     var unreadTotal = 0;
@@ -263,80 +390,46 @@
                             foreach (var c in convs) { unreadTotal += c.UnreadCount; }
                         }
                     }
-                    catch
-                    {
-                        // ignore errors retrieving conversations so layout still renders
-                        unreadTotal = 0;
-                    }
+                    catch { unreadTotal = 0; }
 
                     <div class="swoop-nav-links">
                         <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Index">Hirdetések</a>
-                        <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Saved">Mentett Hírdetések</a>
+                        <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Saved">Mentett</a>
                         <a class="swoop-nav-link" asp-area="" asp-page="/Messages/Index">
                             Üzenetek
                             @if (unreadTotal > 0)
                             {
-                                <span class="swoop-badge swoop-badge-user ms-2">@unreadTotal</span>
+                                <span class="swoop-badge swoop-badge-user ms-1">@unreadTotal</span>
                             }
                         </a>
                     </div>
-                }
 
-                @* Right side *@
-                <div class="swoop-nav-right">
-                    @if (!AuthSession.IsSignedIn)
-                    {
-                        <a class="swoop-btn-login" asp-page="/Account/Login">Bejelentkezés</a>
-                        <a class="swoop-btn-register" asp-page="/Account/Register">Regisztráció</a>
-                    }
-                    else
-                    {
-                        string displayName = AuthSession.GetEmail() ?? "";
-                        try
-                        {
-                            var userId = AuthSession.GetUserId();
-                            if (userId.HasValue)
+                    @* Desktop: Right side *@
+                    <div class="swoop-nav-right">
+                        @{
+                            string displayName = AuthSession.GetEmail() ?? "";
+                            try
                             {
-                                var u = await UserApi.GetByAzonAsync(userId.Value);
-                                if (u != null && !string.IsNullOrWhiteSpace(u.Username))
-                                    displayName = u.Username;
-                            }
-                            else
-                            {
-                                var email = AuthSession.GetEmail();
-                                if (!string.IsNullOrWhiteSpace(email))
+                                var userId = AuthSession.GetUserId();
+                                if (userId.HasValue)
                                 {
-                                    var u = await UserApi.GetByEmailAsync(email);
+                                    var u = await UserApi.GetByAzonAsync(userId.Value);
                                     if (u != null && !string.IsNullOrWhiteSpace(u.Username))
                                         displayName = u.Username;
                                 }
+                                else
+                                {
+                                    var email = AuthSession.GetEmail();
+                                    if (!string.IsNullOrWhiteSpace(email))
+                                    {
+                                        var u = await UserApi.GetByEmailAsync(email);
+                                        if (u != null && !string.IsNullOrWhiteSpace(u.Username))
+                                            displayName = u.Username;
+                                    }
+                                }
                             }
-                        }
-                        catch { }
+                            catch { }
 
-                        <span class="swoop-username">
-                            @displayName
-                            @if (AuthSession.IsInRole("Admin"))
-                            {
-                                <span class="swoop-badge swoop-badge-admin">Admin</span>
-                            }
-                            else if (AuthSession.IsInRole("User"))
-                            {
-                                <span class="swoop-badge swoop-badge-user">Felhasználó</span>
-                            }
-                        </span>
-
-                        @* Admin gomb: csak Admin vagy Owner/Tulaj szerepű felhasználók látják *@
-                        @if (AuthSession.IsInRole("Admin") || AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
-                        {
-                            <a class="swoop-nav-link" asp-area="" asp-page="/Admin/Index">Admin</a>
-                        }
-
-                        <form method="post" asp-page="/Account/Logout" class="d-inline">
-                            <button type="submit" class="swoop-btn-logout">Kijelentkezés</button>
-                        </form>
-
-                       
                             var avatarUrl = "/images/avatar.png";
                             var avatarEmail = AuthSession.GetEmail();
                             if (!string.IsNullOrWhiteSpace(avatarEmail))
@@ -362,14 +455,142 @@
                                     avatarUrl = $"https://www.gravatar.com/avatar/{hash}?s=128&d=identicon";
                                 }
                             }
-                        
+                        }
+
+                        <span class="swoop-username">
+                            @displayName
+                            @if (AuthSession.IsInRole("Admin"))
+                            {
+                                <span class="swoop-badge swoop-badge-admin">Admin</span>
+                            }
+                            else if (AuthSession.IsInRole("User"))
+                            {
+                                <span class="swoop-badge swoop-badge-user">Felhasználó</span>
+                            }
+                        </span>
+
+                        @if (AuthSession.IsInRole("Admin") || AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
+                        {
+                            <a class="swoop-nav-link" asp-area="" asp-page="/Admin/Index">Admin</a>
+                        }
+
+                        <form method="post" asp-page="/Account/Logout" class="d-inline">
+                            <button type="submit" class="swoop-btn-logout">Kijelentkezés</button>
+                        </form>
+
                         <a asp-area="" asp-page="/Users/MyProfile" title="Profilom">
                             <span class="swoop-nav-avatar"><img src="@avatarUrl" alt="profil" /></span>
                         </a>
-                    }
-                </div>
+                    </div>
 
+                    @* Mobile hamburger button *@
+                    <button class="swoop-hamburger" id="swoopHamburger" aria-label="Menü megnyitása" aria-expanded="false">
+                        <svg id="hamburgerIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                }
+                else
+                {
+                    @* Not signed in — show login/register even on mobile *@
+                    <div class="swoop-nav-right" style="display:flex;">
+                        <a class="swoop-btn-login" asp-page="/Account/Login">Bejelentkezés</a>
+                        <a class="swoop-btn-register" asp-page="/Account/Register">Regisztráció</a>
+                    </div>
+                }
             </div>
+
+            @* Mobile dropdown menu (signed in only) *@
+            @if (AuthSession.IsSignedIn)
+            {
+                var unreadMobile = 0;
+                try
+                {
+                    var convsMobile = await MessageApi.GetConversationsAsync();
+                    if (convsMobile != null)
+                        foreach (var c in convsMobile) { unreadMobile += c.UnreadCount; }
+                }
+                catch { unreadMobile = 0; }
+
+                var mobileDisplayName = AuthSession.GetEmail() ?? "";
+                try
+                {
+                    var userId2 = AuthSession.GetUserId();
+                    if (userId2.HasValue)
+                    {
+                        var u2 = await UserApi.GetByAzonAsync(userId2.Value);
+                        if (u2 != null && !string.IsNullOrWhiteSpace(u2.Username))
+                            mobileDisplayName = u2.Username;
+                    }
+                }
+                catch { }
+
+                var mobileAvatarUrl = "/images/avatar.png";
+                var mobileEmail = AuthSession.GetEmail();
+                if (!string.IsNullOrWhiteSpace(mobileEmail))
+                {
+                    try
+                    {
+                        var mu = await UserApi.GetByEmailAsync(mobileEmail);
+                        if (mu != null && !string.IsNullOrWhiteSpace(mu.ProfileImageUrl))
+                        {
+                            mobileAvatarUrl = mu.ProfileImageUrl;
+                        }
+                        else
+                        {
+                            using var md5m = MD5.Create();
+                            var hashm = BitConverter.ToString(md5m.ComputeHash(Encoding.UTF8.GetBytes(mobileEmail.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+                            mobileAvatarUrl = $"https://www.gravatar.com/avatar/{hashm}?s=128&d=identicon";
+                        }
+                    }
+                    catch
+                    {
+                        using var md5m = MD5.Create();
+                        var hashm = BitConverter.ToString(md5m.ComputeHash(Encoding.UTF8.GetBytes(mobileEmail.Trim().ToLowerInvariant()))).Replace("-", "").ToLowerInvariant();
+                        mobileAvatarUrl = $"https://www.gravatar.com/avatar/{hashm}?s=128&d=identicon";
+                    }
+                }
+
+                <div class="swoop-mobile-menu" id="swoopMobileMenu">
+                    <div class="swoop-mobile-user">
+                        <span class="swoop-nav-avatar" style="width:40px;height:40px;">
+                            <img src="@mobileAvatarUrl" alt="profil" />
+                        </span>
+                        <span style="font-weight:700;font-size:15px;color:#1a1a2e;">@mobileDisplayName</span>
+                    </div>
+                    <div class="swoop-mobile-divider"></div>
+
+                    <a class="swoop-mobile-link" asp-area="" asp-page="/Listings/Index">
+                        🏷️ Hirdetések
+                    </a>
+                    <a class="swoop-mobile-link" asp-area="" asp-page="/Listings/Saved">
+                        🔖 Mentett Hirdetések
+                    </a>
+                    <a class="swoop-mobile-link" asp-area="" asp-page="/Messages/Index">
+                        💬 Üzenetek
+                        @if (unreadMobile > 0)
+                        {
+                            <span class="swoop-badge swoop-badge-user">@unreadMobile</span>
+                        }
+                    </a>
+                    <a class="swoop-mobile-link" asp-area="" asp-page="/Users/MyProfile">
+                        👤 Profilom
+                    </a>
+
+                    @if (AuthSession.IsInRole("Admin") || AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))
+                    {
+                        <a class="swoop-mobile-link" asp-area="" asp-page="/Admin/Index">
+                            🛡️ Admin
+                        </a>
+                    }
+
+                    <div class="swoop-mobile-divider"></div>
+
+                    <form method="post" asp-page="/Account/Logout">
+                        <button type="submit" class="swoop-mobile-logout">⬅️ Kijelentkezés</button>
+                    </form>
+                </div>
+            }
         </nav>
     </header>
 
@@ -402,6 +623,24 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        (function () {
+            var btn = document.getElementById('swoopHamburger');
+            var menu = document.getElementById('swoopMobileMenu');
+            if (!btn || !menu) return;
+            btn.addEventListener('click', function () {
+                var isOpen = menu.classList.toggle('open');
+                btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+            // close when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                    menu.classList.remove('open');
+                    btn.setAttribute('aria-expanded', 'false');
+                }
+            });
+        })();
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
