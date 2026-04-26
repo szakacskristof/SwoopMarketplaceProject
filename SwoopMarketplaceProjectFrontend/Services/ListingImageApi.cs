@@ -9,26 +9,30 @@ namespace SwoopMarketplaceProjectFrontend.Services
     {
         private readonly IHttpClientFactory _f;
 
+        // Constructor: initialize with HTTP client factory.
         public ListingImageApi(IHttpClientFactory f) => _f = f;
 
 
+        // GetAllAsync: retrieve all listing images.
         public async Task<List<ListingImageDto>> GetAllAsync()
             => await _f.CreateClient("SwoopApi")
                 .GetFromJsonAsync<List<ListingImageDto>>("api/ListingImages") ?? new();
 
 
+        // GetByAzonAsync: retrieve a single listing image by id.
         public async Task<ListingImageDto?> GetByAzonAsync(int azon)
             => await _f.CreateClient("SwoopApi")
                 .GetFromJsonAsync<ListingImageDto>($"api/ListingImages/{azon}");
 
 
+        // CreateAsync: create a listing image record on the server.
         public async Task CreateAsync(ListingImageDto dto)
         {
             var r = await _f.CreateClient("SwoopApi").PostAsJsonAsync("api/ListingImages", dto);
             r.EnsureSuccessStatusCode();
         }
 
-        // Upload file and return created ListingImageDto (reads CreatedAtAction payload)
+        // UploadAsync: upload a file for a listing and return the created DTO.
         public async Task<ListingImageDto> UploadAsync(long listingId, IFormFile file)
         {
             using var client = _f.CreateClient("SwoopApi");
@@ -52,6 +56,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         }
 
 
+        // UpdateAsync: update an existing listing image record.
         public async Task UpdateAsync(int azon, ListingImageDto dto)
         {
             var r = await _f.CreateClient("SwoopApi")
@@ -60,6 +65,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         }
 
 
+        // DeleteAsync: delete a listing image by id.
         public async Task DeleteAsync(int azon)
         {
             var r = await _f.CreateClient("SwoopApi")
@@ -67,7 +73,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             r.EnsureSuccessStatusCode();
         }
 
-        // Set primary image for a listing (server provides atomic endpoint)
+        // SetPrimaryAsync: request server to mark a specific image as primary.
         public async Task SetPrimaryAsync(long listingId, long primaryImageId)
         {
             var r = await _f.CreateClient("SwoopApi").PostAsync($"api/ListingImages/{primaryImageId}/set-primary", null);

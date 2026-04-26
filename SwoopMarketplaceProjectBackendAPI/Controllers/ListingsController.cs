@@ -24,7 +24,10 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context = context;
         }
 
+        // Constructor: initialize controller with application DB context.
+
         // GET: api/Listings
+        // Returns a projection of all listings with their image URLs converted for browser use.
         [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetListings()
@@ -74,6 +77,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Listings/5
+        // Returns a single listing by id including images with normalized URLs.
         [AllowAnonymous]
         [HttpGet("{id:long}")]
         public async Task<ActionResult<object>> GetListing(long id)
@@ -127,6 +131,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Listings/bycategory/{category}
+        // Returns listings filtered by category name with images normalized.
         [AllowAnonymous]
         [HttpGet("bycategory/{category}")]
         public async Task<ActionResult<IEnumerable<object>>> GetListingByCategory(string category)
@@ -175,7 +180,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // PUT: api/Listings/5
-        // Only the owner (or Admin/Owner) can update their listing.
+        // Update an existing listing. Only the owner or privileged roles may perform this.
         [HttpPut("{id}")]
         [Authorize(Roles = "User,Admin,Owner,Tulaj")]
         public async Task<IActionResult> PutListing(long id, Listing listing)
@@ -239,6 +244,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/Listings
+        // Create a new listing for the authenticated user and return its location.
         [HttpPost]
         [Authorize(Roles = "User,Admin,Owner,Tulaj")]
         public async Task<ActionResult<Listing>> PostListing(Listing listing)
@@ -269,6 +275,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // DELETE: api/Listings/5
+        // Delete a listing if the caller is the owner or has elevated privileges.
         [HttpDelete("{id}")]
         [Authorize(Roles = "User,Admin,Owner,Tulaj")]
         public async Task<IActionResult> DeleteListing(long id)
@@ -303,16 +310,16 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
+        // Helper: returns true if a listing with the given id exists in the database.
         private bool ListingExists(long id)
         {
             return _context.Listings.Any(e => e.Id == id);
         }
 
         // Helper: normalize stored image URLs for browser consumption.
-        // - trims stray quotes/whitespace
-        // - if absolute URL => return as-is
-        // - if starts with "/" => prefix with baseUrl to produce an absolute URL
-        // - if looks like a bare filename => assume it lives in /images/
+        // - Trim stray quotes and whitespace.
+        // - If already absolute return as-is; otherwise build an absolute URL using baseUrl.
+        // - If the path looks like a filename assume it lives under /images/.
         private static string NormalizeImageUrl(string? storedUrl, string baseUrl)
         {
             if (string.IsNullOrWhiteSpace(storedUrl))

@@ -19,6 +19,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages
             _logger = logger;
         }
 
+        // Constructor: initialize error page with logger.
+
+        // OnGet: populate RequestId so view can show correlation information.
         public void OnGet()
         {
             RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier;

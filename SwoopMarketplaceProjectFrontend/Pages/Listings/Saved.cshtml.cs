@@ -20,6 +20,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             _auth = auth;
         }
 
+        // Constructor: initialize with listing api, bookmark api and auth session.
+
+        // OnGetAsync: load bookmarked listings for the current user.
         public async Task<IActionResult> OnGetAsync()
         {
             if (!_auth.IsSignedIn)
@@ -42,7 +45,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             return Page();
         }
 
-        // Toggle bookmark (keeps you on the Saved page)
+        // OnPostToggleBookmarkAsync: toggle a bookmark and stay on the Saved page.
         public async Task<IActionResult> OnPostToggleBookmarkAsync(long azon)
         {
             if (!_auth.IsSignedIn)

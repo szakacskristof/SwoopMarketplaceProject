@@ -11,8 +11,10 @@ namespace SwoopMarketplaceProjectFrontend.Services
     {
         private readonly IHttpClientFactory _f;
 
+        // Constructor: initialize with HTTP client factory.
         public UserApi(IHttpClientFactory f) => _f = f;
 
+        // GetAllAsync: retrieve all users and normalize profile image URLs to absolute addresses.
         public async Task<List<UserDto>> GetAllAsync()
         {
             var client = _f.CreateClient("SwoopApi");
@@ -44,6 +46,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return users;
         }
 
+        // GetByAzonAsync: fetch a single user by id and normalize profile image URL.
         public async Task<UserDto?> GetByAzonAsync(long azon)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -57,19 +60,21 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return user;
         }
 
-        // helper to lookup by email (frontend uses this)
+        // GetByEmailAsync: helper lookup by email (uses in-memory list from GetAllAsync).
         public async Task<UserDto?> GetByEmailAsync(string email)
         {
             var all = await GetAllAsync();
             return all.FirstOrDefault(u => string.Equals(u.Email, email, StringComparison.OrdinalIgnoreCase));
         }
 
+        // CreateAsync: create a new user on the server.
         public async Task CreateAsync(UserDto dto)
         {
             var r = await _f.CreateClient("SwoopApi").PostAsJsonAsync("api/Users", dto);
             r.EnsureSuccessStatusCode();
         }
 
+        // UpdateAsync: update an existing user by id.
         public async Task UpdateAsync(long azon, UserDto dto)
         {
             var payload = new
@@ -92,7 +97,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             }
         }
 
-        // Upload profile image for user id, returns the stored image url
+        // UploadProfileImageAsync: upload profile image and return normalized image url.
         public async Task<string?> UploadProfileImageAsync(long userId, IFormFile file)
         {
             using var client = _f.CreateClient("SwoopApi");
@@ -125,6 +130,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
 
         private class UploadResponse { public string ImageUrl { get; set; } = ""; }
 
+        // DeleteAsync: delete a user by id.
         public async Task DeleteAsync(long azon)
         {
             var r = await _f.CreateClient("SwoopApi")

@@ -20,7 +20,10 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context = context;
         }
 
+        // Constructor: initialize controller with application DB context.
+
         // GET: api/ListingViews
+        // Return all listing view records.
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ListingView>>> GetListingViews()
         {
@@ -28,6 +31,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/ListingViews/5
+        // Return a single listing view by id.
         [HttpGet("{id}")]
         public async Task<ActionResult<ListingView>> GetListingView(int id)
         {
@@ -42,7 +46,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // PUT: api/ListingViews/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // Update an existing listing view record.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutListingView(int id, ListingView listingView)
         {
@@ -73,7 +77,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/ListingViews
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // Create a new listing view record.
         [HttpPost]
         public async Task<ActionResult<ListingView>> PostListingView(ListingView listingView)
         {
@@ -98,6 +102,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // DELETE: api/ListingViews/5
+        // Delete a listing view record by id.
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteListingView(int id)
         {
@@ -113,6 +118,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
+        // Helper: returns true if a listing view with the specified id exists.
         private bool ListingViewExists(int id)
         {
             return _context.ListingViews.Any(e => e.Id == id);

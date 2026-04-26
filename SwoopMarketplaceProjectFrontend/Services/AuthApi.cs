@@ -6,8 +6,11 @@ namespace SwoopMarketplaceProjectFrontend.Services
     public class AuthApi
     {
         private readonly IHttpClientFactory _f;
+
+        // Constructor: initialize with HTTP client factory.
         public AuthApi(IHttpClientFactory f) => _f = f;
 
+        // RegisterAsync: send registration request to API and throw friendly errors on failure.
         public async Task RegisterAsync(string email, string password, string phone, CancellationToken ct = default)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -20,6 +23,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             throw new HttpRequestException(MapRegisterError(resp.StatusCode, body));
         }
 
+        // LoginAsync: authenticate and return JWT token or throw mapped error messages.
         public async Task<string> LoginAsync(string email, string password, CancellationToken ct = default)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -35,6 +39,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return data?.Token ?? throw new InvalidOperationException("Nincs token a válaszban.");
         }
 
+        // SafeReadBodyAsync: read response body defensively, returning null on failure.
         private static async Task<string?> SafeReadBodyAsync(HttpResponseMessage resp)
         {
             try
@@ -44,6 +49,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             catch { return null; }
         }
 
+        // MapLoginError: convert HTTP status codes to user-friendly messages for login.
         private static string MapLoginError(HttpStatusCode code, string? body)
         {
             return code switch
@@ -56,6 +62,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             };
         }
 
+        // MapRegisterError: convert HTTP status codes to user-friendly messages for registration.
         private static string MapRegisterError(HttpStatusCode code, string? body)
         {
             return code switch

@@ -21,7 +21,10 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context = context;
         }
 
+        // Constructor: initialize controller with application DB context.
+
         // GET: api/ListingImages
+        // Return all listing images from database.
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ListingImage>>> GetListingImages()
         {
@@ -29,6 +32,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/ListingImages/5
+        // Return a specific listing image by id.
         [HttpGet("{id}")]
         public async Task<ActionResult<ListingImage>> GetListingImage(long id)
         {
@@ -43,6 +47,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // PUT: api/ListingImages/5
+        // Update an existing listing image record.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutListingImage(long id, ListingImage listingImage)
         {
@@ -73,6 +78,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/ListingImages
+        // Create a new listing image record in the database.
         [HttpPost]
         public async Task<ActionResult<ListingImage>> PostListingImage(ListingImage listingImage)
         {
@@ -115,11 +121,10 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
                 await request.File.CopyToAsync(stream);
             }
 
-            // IMPORTANT: store a web-friendly relative URL (no "wwwroot" or physical path).
-            // If your app is hosted under a path base, the browser will resolve relative URLs properly.
+            // Store a web-friendly relative URL (no physical path) so clients can load the image.
             var relativeUrl = $"/images/{fileName}";
 
-            // Determine primary image: if this listing has no images yet, mark primary = true
+            // Determine primary image: mark as primary when it's the first for the listing.
             var hasAny = await _context.ListingImages.AnyAsync(li => li.ListingId == request.ListingId);
             var listingImage = new ListingImage
             {
@@ -131,7 +136,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context.ListingImages.Add(listingImage);
             await _context.SaveChangesAsync();
 
-            // Return a minimal payload to avoid serializing navigation properties (prevents JSON cycles)
+            // Return a minimal payload to avoid serializing navigation properties.
             var result = new
             {
                 Id = listingImage.Id,
@@ -167,6 +172,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // DELETE: api/ListingImages/5
+        // Delete the listing image record and attempt to remove the file from disk.
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteListingImage(long id)
         {
@@ -206,6 +212,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
+        // Helper: returns true if a listing image with the given id exists.
         private bool ListingImageExists(long id)
         {
             return _context.ListingImages.Any(e => e.Id == id);

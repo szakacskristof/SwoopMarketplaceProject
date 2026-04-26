@@ -25,6 +25,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             _category_api = categoryApi;
         }
 
+        // Constructor: initialize page model with listing, image and auth services.
+
         public record CategoryItem(long Id, string Name);
 
         public IList<CategoryItem> Categories { get; private set; } = new List<CategoryItem>();
@@ -38,6 +40,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         public string? Message { get; set; }
         public string? Error { get; set; }
 
+        // OnGetAsync: load listing, categories and existing images for editing.
         public async Task<IActionResult> OnGetAsync(int azon)
         {
             if (!_auth.IsSignedIn)
@@ -60,6 +63,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             return Page();
         }
 
+        // OnPostAsync: validate and update listing, handle image uploads and primary selection.
         public async Task<IActionResult> OnPostAsync()
         {
             if (Input is null)
@@ -143,6 +147,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         }
 
         // delete a listing image and go back to the edit page
+        // OnPostDeleteImageAsync: delete an image record and redirect back to edit page.
         public async Task<IActionResult> OnPostDeleteImageAsync(int id, int listingId)
         {
             if (!_auth.IsSignedIn)
@@ -160,6 +165,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             return RedirectToPage("/Listings/Edit", new { azon = listingId });
         }
 
+        // LoadCategoriesAsync: helper to populate categories list for select controls.
         private async Task LoadCategoriesAsync()
         {
             Categories.Clear();
@@ -174,6 +180,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             }
         }
 
+        // LoadExistingImagesAsync: helper to load ListingImage records and normalize URLs for UI.
         private async Task LoadExistingImagesAsync(long listingId)
         {
             ExistingImages.Clear();

@@ -19,6 +19,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             _userApi = userApi;
         }
 
+        // Constructor: initialize page model with message, auth and user services.
+
         [BindProperty(SupportsGet = true)] public long To { get; set; }
         [BindProperty(SupportsGet = true)] public long? Listing { get; set; }
         [BindProperty] public string NewMessage { get; set; } = "";
@@ -35,6 +37,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
         // listing information if conversation is about a specific listing
         public MessageApi.ListingDto? ListingInfo { get; set; }
 
+        // OnGetAsync: ensure user signed in and load conversation data for the view.
         public async Task<IActionResult> OnGetAsync()
         {
             if (!_auth.IsSignedIn)
@@ -44,6 +47,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             return Page();
         }
 
+        // OnPostSendAsync: send a new message and redirect back to the conversation.
         public async Task<IActionResult> OnPostSendAsync()
         {
             if (!_auth.IsSignedIn)
@@ -70,6 +74,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             }
         }
 
+        // OnPostDeleteConversationAsync: request soft-delete of the conversation for the caller.
         public async Task<IActionResult> OnPostDeleteConversationAsync()
         {
             if (!_auth.IsSignedIn)
@@ -84,6 +89,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             return RedirectToPage("/Messages/Index");
         }
 
+        // LoadConversationDataAsync: helper to load messages, other user and current user info.
         private async Task LoadConversationDataAsync()
         {
             // Resolve conversation
@@ -128,6 +134,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             }
         }
 
+        // GetGravatarUrl: build gravatar URL for an email or return placeholder.
         public string GetGravatarUrl(string? email, int size = 128)
         {
             if (string.IsNullOrWhiteSpace(email)) return "/images/avatar.png";

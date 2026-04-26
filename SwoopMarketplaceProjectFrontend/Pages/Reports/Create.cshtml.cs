@@ -21,6 +21,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
             _userApi = userApi;
         }
 
+        // Constructor: initialize page model with services for reporting listings.
+
         [BindProperty(SupportsGet = true)]
         public long ListingId { get; set; }
 
@@ -36,6 +38,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
         [BindProperty]
         public InputModel Input { get; set; } = new();
 
+        // OnGetAsync: load listing to be reported and ensure it exists.
         public async Task<IActionResult> OnGetAsync()
         {
             if (ListingId <= 0)
@@ -52,6 +55,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Reports
             return Page();
         }
 
+        // OnPostAsync: submit a report for the listing from the authenticated user.
         public async Task<IActionResult> OnPostAsync()
         {
             if (ListingId <= 0)

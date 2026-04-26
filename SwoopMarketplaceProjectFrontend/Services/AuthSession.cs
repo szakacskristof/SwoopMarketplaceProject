@@ -8,21 +8,27 @@ namespace SwoopMarketplaceProjectFrontend.Services
         private const string TokenKey = "auth.jwt";
         private readonly IHttpContextAccessor _http;
 
+        // Constructor: initialize with HTTP context accessor.
         public AuthSession(IHttpContextAccessor http) => _http = http;
 
+        // GetToken: read stored JWT token from session.
         public string? GetToken()
         => _http.HttpContext?.Session.GetString(TokenKey);
 
+        // SetToken: save JWT token into session.
         public void SetToken(string token)
         => _http.HttpContext?.Session.SetString(TokenKey, token);
 
+        // Clear: remove JWT token from session.
         public void Clear()
         => _http.HttpContext?.Session.Remove(TokenKey);
 
+        // IsSignedIn: indicates whether a token is present in session.
         public bool IsSignedIn
         => !string.IsNullOrWhiteSpace(GetToken());
         // --- JWT claims kiolvasásának segédfüggvényei ---
 
+        // ReadJwt: parse the stored token into a JwtSecurityToken, or null if absent/invalid.
         private JwtSecurityToken? ReadJwt()
         {
             var token = GetToken();

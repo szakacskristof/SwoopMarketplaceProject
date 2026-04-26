@@ -53,6 +53,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             _bookmarkApi = bookmarkApi;
         }
 
+        // Constructor: initialize listings index page with services.
+
         public async Task<IActionResult> OnGetAsync()
         {
             // If the user requested the Saved tab but is not signed in -> redirect to login
@@ -137,6 +139,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         }
 
         // Handler invoked by the inline delete form (onsubmit uses confirm())
+        // OnPostDeleteAsync: handle inline delete request for a listing (validates ownership).
         public async Task<IActionResult> OnPostDeleteAsync(int azon)
         {
             if (!_auth.IsSignedIn)
@@ -179,7 +182,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             }
         }
 
-        // toggles bookmark on a listing (POST)
+        // OnPostToggleBookmarkAsync: toggle bookmark state for the current user.
         public async Task<IActionResult> OnPostToggleBookmarkAsync(long azon)
         {
             if (!_auth.IsSignedIn)

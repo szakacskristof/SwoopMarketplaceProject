@@ -16,8 +16,11 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             _auth = auth;
         }
 
+        // Constructor: initialize page model with message API and auth session.
+
         public System.Collections.Generic.List<MessageApi.ConversationDto> Conversations { get; set; } = new();
 
+        // OnGetAsync: ensure caller is signed in and load conversation overview.
         public async Task<IActionResult> OnGetAsync()
         {
             if (!_auth.IsSignedIn) return RedirectToPage("/Account/Login", new { returnUrl = Url.Page("/Messages/Index") });
@@ -25,6 +28,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Messages
             return Page();
         }
 
+        // OnPostDeleteConversationAsync: soft-delete a conversation for the caller.
         public async Task<IActionResult> OnPostDeleteConversationAsync(long otherUserId, long? listingId)
         {
             if (!_auth.IsSignedIn)

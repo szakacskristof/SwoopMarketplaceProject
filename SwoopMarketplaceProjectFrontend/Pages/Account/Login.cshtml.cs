@@ -21,6 +21,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
             _session = session;
         }
 
+        // Constructor: initialize login page with auth api and session helper.
+
         [BindProperty, Required(ErrorMessage = "Kötelezõ mezõ."), EmailAddress(ErrorMessage = "Kérjük, érvényes e-mail címet adjon meg.")]
         public string Email { get; set; } = "";
 
@@ -30,8 +32,10 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Account
         [BindProperty(SupportsGet = true)]
         public string? ReturnUrl { get; set; }
         public string? Error { get; set; }
+        // OnGet: display login form (no pre-loading required).
         public void OnGet() { }
 
+        // OnPostAsync: authenticate using AuthApi, store JWT and sign-in cookie.
         public async Task<IActionResult> OnPostAsync()
         {
             if (!ModelState.IsValid) return Page();

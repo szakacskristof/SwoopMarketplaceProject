@@ -23,6 +23,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             _category_api = categoryApi;
         }
 
+        // Constructor: initialize page model with required services for creating listings.
+
         public record CategoryItem(long Id, string Name);
 
         public IList<CategoryItem> Categories { get; private set; } = new List<CategoryItem>();
@@ -54,6 +56,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         [BindProperty]
         public InputModel Input { get; set; } = new();
 
+        // OnGetAsync: prepare categories and debug info for the create form.
         public async Task OnGetAsync()
         {
             Categories.Clear();
@@ -74,6 +77,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             DebugRoles = _auth.GetRoles();
         }
 
+        // OnPostAsync: validate input, create listing and upload optional images.
         public async Task<IActionResult> OnPostAsync()
         {
             // require authentication for creating (backend requires Auth)

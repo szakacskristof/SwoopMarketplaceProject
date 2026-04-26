@@ -20,6 +20,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
             _listingApi = listingApi;
         }
 
+        // Constructor: initialize profile page model with user, auth and listing services.
+
         [BindProperty]
         public UserDto? User { get; set; }
 
@@ -33,6 +35,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
         // User's own listings (display on the page)
         public List<ListingWithOwnerDto>? UserListings { get; set; }
 
+        // OnGetAsync: load current user's profile and their listings for display.
         public async Task<IActionResult> OnGetAsync()
         {
             if (!_auth.IsSignedIn)
@@ -64,6 +67,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Users
             return Page();
         }
 
+        // OnPostAsync: update profile and optionally upload a new profile image.
         public async Task<IActionResult> OnPostAsync()
         {
             if (User is null) return BadRequest();

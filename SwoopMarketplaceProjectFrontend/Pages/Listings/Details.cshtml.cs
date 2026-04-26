@@ -23,6 +23,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             _bookmarkApi = bookmarkApi;
         }
 
+        // Constructor: initialize page model with required services.
+
         public ListingDto? Listing { get; private set; }
         public string? OwnerEmail { get; private set; }
         public string? OwnerProfileImageUrl { get; private set; }
@@ -35,6 +37,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
         [BindProperty(SupportsGet = true)]
         public string? ReturnUrl { get; set; }
 
+        // OnGetAsync: load listing details and owner info for display.
         public async Task<IActionResult> OnGetAsync(int azon)
         {
             if (azon <= 0)
@@ -92,6 +95,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Listings
             return Page();
         }
 
+        // OnPostToggleBookmarkAsync: toggle bookmark for signed-in user, redirect to login if not.
         public async Task<IActionResult> OnPostToggleBookmarkAsync(int azon)
         {
             if (!_auth.IsSignedIn)

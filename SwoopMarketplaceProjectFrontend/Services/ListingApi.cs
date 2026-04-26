@@ -10,16 +10,20 @@ namespace SwoopMarketplaceProjectFrontend.Services
         private readonly IHttpClientFactory _f;
         private readonly AuthSession _auth;
 
+        // Constructor: initialize with HTTP client factory and auth session.
         public ListingApi(IHttpClientFactory f, AuthSession auth) { _f = f; _auth = auth; }
 
+        // GetAllAsync: retrieve all listings from the API.
         public async Task<List<ListingDto>> GetAllAsync()
             => await _f.CreateClient("SwoopApi")
                 .GetFromJsonAsync<List<ListingDto>>("api/Listings") ?? new();
 
+        // GetByAzonAsync: retrieve a single listing by id.
         public async Task<ListingDto?> GetByAzonAsync(int azon)
             => await _f.CreateClient("SwoopApi")
                 .GetFromJsonAsync<ListingDto>($"api/Listings/{azon}");
 
+        // GetAllWithOwnersAsync: fetch listings and enrich each with owner info.
         public async Task<List<ListingWithOwnerDto>> GetAllWithOwnersAsync()
         {
             var client = _f.CreateClient("SwoopApi");
@@ -74,6 +78,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return result;
         }
 
+        // GetByAzonWithOwnerAsync: fetch a listing by id and include owner details.
         public async Task<ListingWithOwnerDto?> GetByAzonWithOwnerAsync(int azon)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -105,6 +110,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             };
         }
 
+        // CreateAsync: create a new listing using authenticated API call.
         public async Task<ListingDto?> CreateAsync(ListingDto dto)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -129,6 +135,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return await r.Content.ReadFromJsonAsync<ListingDto>();
         }
 
+        // CreateWithUserAsync: create a listing with an embedded user payload.
         public async Task<ListingDto?> CreateWithUserAsync(ListingDto dto, UserDto user)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -159,12 +166,14 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return await r.Content.ReadFromJsonAsync<ListingDto>();
         }
 
+        // UpdateAsync: update an existing listing by id.
         public async Task UpdateAsync(int azon, ListingDto dto)
         {
             var r = await _f.CreateClient("SwoopApi").PutAsJsonAsync($"api/Listings/{azon}", dto);
             r.EnsureSuccessStatusCode();
         }
 
+        // DeleteAsync: delete a listing by id (attaches auth token when available).
         public async Task DeleteAsync(int azon)
         {
             var client = _f.CreateClient("SwoopApi");

@@ -28,6 +28,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             _authSession = authSession;
         }
 
+        // Constructor: initialize admin page with necessary APIs and auth session.
+
         [BindProperty(SupportsGet = true)]
         public string SelectedTab { get; set; } = "listings";
 
@@ -35,6 +37,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
         public List<UserDto>? Users { get; set; }
         public List<ReportDto>? Reports { get; set; }
 
+        // OnGetAsync: load listings, users and reports for admin dashboard.
         public async Task OnGetAsync()
         {
             Listings = await _listingApi.GetAllWithOwnersAsync();
@@ -61,6 +64,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             }
         }
 
+        // OnPostDeleteListingAsync: admin action to delete a listing.
         public async Task<IActionResult> OnPostDeleteListingAsync(int azon)
         {
             try
@@ -75,6 +79,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             return RedirectToPage(new { SelectedTab = "listings" });
         }
 
+        // OnPostDeleteUserAsync: admin action to delete a user with role protection checks.
         public async Task<IActionResult> OnPostDeleteUserAsync(long id)
         {
             try
@@ -115,6 +120,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             return RedirectToPage(new { SelectedTab = "users" });
         }
 
+        // OnPostDeleteReportAsync: delete a report entry.
         public async Task<IActionResult> OnPostDeleteReportAsync(long id)
         {
             try
@@ -129,6 +135,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             return RedirectToPage(new { SelectedTab = "reports" });
         }
 
+        // OnPostDeleteListingAndReportAsync: delete both listing and its associated report.
         public async Task<IActionResult> OnPostDeleteListingAndReportAsync(int listingId, long reportId)
         {
             try
@@ -145,6 +152,7 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             return RedirectToPage(new { SelectedTab = "reports" });
         }
 
+        // OnPostSetUserRoleAsync: set a user's role via admin API (with safeguards).
         public async Task<IActionResult> OnPostSetUserRoleAsync(long id, string role)
         {
             try

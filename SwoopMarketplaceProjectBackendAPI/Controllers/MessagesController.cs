@@ -16,6 +16,8 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         private readonly SwoopContext _context;
         public MessagesController(SwoopContext context) => _context = context;
 
+        // Constructor: initialize controller with application DB context.
+
         // DTOs
         public class CreateMessageDto
         {
@@ -64,6 +66,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/Messages
+        // Create a new message from the authenticated caller to a recipient.
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<MessageDto>> PostMessage([FromBody] CreateMessageDto dto)
@@ -103,7 +106,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // DELETE: api/Messages/conversation/{otherUserId}?listingId=...
-        // Soft-deletes the conversation only for the caller.
+        // Soft-delete conversation messages for the caller; hard-delete if both parties deleted.
         [HttpDelete("conversation/{otherUserId}")]
         [Authorize]
         public async Task<IActionResult> DeleteConversation(long otherUserId, [FromQuery] long? listingId = null)
@@ -142,6 +145,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Messages/conversations
+        // Return a list of conversations for the caller with last message and unread counts.
         [HttpGet("conversations")]
         [Authorize]
         public async Task<ActionResult> GetConversations()
@@ -191,6 +195,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Messages/with/{otherUserId}?listingId=...
+        // Return the message thread between caller and another user; mark unread as read.
         [HttpGet("with/{otherUserId}")]
         [Authorize]
         public async Task<ActionResult> GetMessagesWith(long otherUserId, [FromQuery] long? listingId = null)

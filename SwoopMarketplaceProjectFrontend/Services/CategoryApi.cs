@@ -6,9 +6,11 @@ namespace SwoopMarketplaceProjectFrontend.Services
     {
         private readonly IHttpClientFactory _f;
 
+        // Constructor: initialize with HTTP client factory.
         public CategoryApi(IHttpClientFactory f) => _f = f;
 
 
+        // GetAllAsync: retrieve all categories from API.
         public async Task<List<CategoryDto>> GetAllAsync()
 
         => await _f.CreateClient("SwoopApi")
@@ -16,6 +18,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         .GetFromJsonAsync<List<CategoryDto>>("api/Categories") ?? new();
 
 
+        // GetByAzonAsync: retrieve a category by id.
         public async Task<CategoryDto?> GetByAzonAsync(int azon)
 
         => await _f.CreateClient("SwoopApi")
@@ -23,6 +26,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         .GetFromJsonAsync<CategoryDto>($"api/Categories/{azon}");
 
 
+        // CreateAsync: create a new category on the server.
         public async Task CreateAsync(CategoryDto dto)
 
         {
@@ -34,6 +38,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         }
 
 
+        // UpdateAsync: update a category by id.
         public async Task UpdateAsync(int azon, CategoryDto dto)
 
         {
@@ -47,6 +52,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         }
 
 
+        // DeleteAsync: delete a category by id.
         public async Task DeleteAsync(int azon)
 
         {

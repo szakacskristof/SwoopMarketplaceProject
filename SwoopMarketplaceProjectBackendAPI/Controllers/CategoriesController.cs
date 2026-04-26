@@ -20,7 +20,10 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             _context = context;
         }
 
+        // Constructor: initialize controller with application DB context.
+
         // GET: api/Categories
+        // Return all categories available in the system.
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
@@ -28,6 +31,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // GET: api/Categories/5
+        // Return a specific category by id.
         [HttpGet("{id}")]
         public async Task<ActionResult<Category>> GetCategory(long id)
         {
@@ -42,7 +46,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // PUT: api/Categories/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // Update an existing category record.
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCategory(long id, Category category)
         {
@@ -73,7 +77,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // POST: api/Categories
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // Create a new category.
         [HttpPost]
         public async Task<ActionResult<Category>> PostCategory(Category category)
         {
@@ -84,6 +88,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
         }
 
         // DELETE: api/Categories/5
+        // Remove a category by id.
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(long id)
         {
@@ -99,6 +104,7 @@ namespace SwoopMarketplaceProjectBackendAPI.Controllers
             return NoContent();
         }
 
+        // Helper: returns true if a category with the given id exists.
         private bool CategoryExists(long id)
         {
             return _context.Categories.Any(e => e.Id == id);

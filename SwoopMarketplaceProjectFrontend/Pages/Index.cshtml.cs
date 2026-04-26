@@ -12,6 +12,9 @@ namespace SwoopMarketplaceProjectFrontend.Pages
             _logger = logger;
         }
 
+        // Constructor: initialize home page model with logger.
+
+        // OnGet: handle GET requests for the home page (no special logic).
         public void OnGet()
         {
 

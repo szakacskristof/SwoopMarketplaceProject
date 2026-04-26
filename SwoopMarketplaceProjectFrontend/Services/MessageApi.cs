@@ -8,8 +8,10 @@ namespace SwoopMarketplaceProjectFrontend.Services
     public class MessageApi
     {
         private readonly IHttpClientFactory _f;
+        // Constructor: initialize with HTTP client factory.
         public MessageApi(IHttpClientFactory f) => _f = f;
 
+        // GetConversationsAsync: fetch conversation list for the signed-in user.
         public async Task<List<ConversationDto>> GetConversationsAsync()
         {
             var client = _f.CreateClient("SwoopApi");
@@ -17,6 +19,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return res ?? new();
         }
 
+        // GetMessagesWithAsync: fetch chat messages between caller and another user; normalize image urls.
         public async Task<ConversationMessagesDto> GetMessagesWithAsync(long otherUserId, long? listingId = null)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -34,6 +37,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
             return res ?? new();
         }
 
+        // SendAsync: send a new message to a recipient for an optional listing.
         public async Task SendAsync(long toUserId, string content, long? listingId = null)
         {
             var client = _f.CreateClient("SwoopApi");
@@ -45,6 +49,7 @@ namespace SwoopMarketplaceProjectFrontend.Services
         /// Soft-deletes the conversation for the currently signed-in user only.
         /// The other participant still sees all messages.
         /// </summary>
+        // DeleteConversationAsync: soft-delete the conversation for the current user.
         public async Task DeleteConversationAsync(long otherUserId, long? listingId = null)
         {
             var client = _f.CreateClient("SwoopApi");
