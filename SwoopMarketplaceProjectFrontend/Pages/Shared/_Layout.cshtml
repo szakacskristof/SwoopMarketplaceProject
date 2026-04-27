@@ -394,7 +394,7 @@
 
                     <div class="swoop-nav-links">
                         <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Index">Hirdetések</a>
-                        <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Saved">Mentett</a>
+                        <a class="swoop-nav-link" asp-area="" asp-page="/Listings/Saved">Kedvencek</a>
                         <a class="swoop-nav-link" asp-area="" asp-page="/Messages/Index">
                             Üzenetek
                             @if (unreadTotal > 0)
@@ -459,14 +459,7 @@
 
                         <span class="swoop-username">
                             @displayName
-                            @if (AuthSession.IsInRole("Admin"))
-                            {
-                                <span class="swoop-badge swoop-badge-admin">Admin</span>
-                            }
-                            else if (AuthSession.IsInRole("User"))
-                            {
-                                <span class="swoop-badge swoop-badge-user">Felhasználó</span>
-                            }
+                            
                         </span>
 
                         @if (AuthSession.IsInRole("Admin") || AuthSession.IsInRole("Owner") || AuthSession.IsInRole("Tulaj"))

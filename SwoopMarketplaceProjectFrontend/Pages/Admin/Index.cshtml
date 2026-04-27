@@ -477,6 +477,15 @@
         <div class="tab-pane fade @(Model.SelectedTab == "listings" ? "show active" : "")" id="tab-listings" role="tabpanel">
             <div class="admin-panel">
                 <h4>Összes hirdetés</h4>
+
+                @* Listing search *@
+                <form method="get" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+                    <input type="hidden" name="SelectedTab" value="listings" />
+                    <input name="ListingSearch" value="@(Model.ListingSearch ?? "")" placeholder="Keresés címre, tulajra, kategóriára vagy leírásra..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-family:inherit;" />
+                    <button class="admin-btn admin-btn-primary" type="submit">🔎 Keresés</button>
+                    <a class="admin-btn admin-btn-secondary" href="@Url.Page("/Admin/Index", new { SelectedTab = "listings" })">✖ Töröl</a>
+                </form>
+
                 @if (Model.Listings?.Any() != true)
                 {
                     <div class="admin-empty">
@@ -510,6 +519,7 @@
                                             <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Törölni szeretnéd a hirdetést?');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="azon" value="@item.Listing.Id" />
+                                                <input type="hidden" name="ListingSearch" value="@(Model.ListingSearch ?? "")" />
                                                 <button class="admin-btn admin-btn-danger" type="submit">🗑 Törlés</button>
                                             </form>
                                         </div>
@@ -562,6 +572,7 @@
                                                 <form method="post" asp-page-handler="DeleteListing" class="d-inline" onsubmit="return confirm('Biztosan törlöd ezt a hirdetést?');">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="azon" value="@item.Listing.Id" />
+                                                    <input type="hidden" name="ListingSearch" value="@(Model.ListingSearch ?? "")" />
                                                     <button class="admin-btn admin-btn-danger" type="submit">🗑 Törlés</button>
                                                 </form>
                                                 <button type="button" class="admin-btn admin-btn-secondary" data-bs-dismiss="modal">Bezár</button>
@@ -580,6 +591,15 @@
         <div class="tab-pane fade @(Model.SelectedTab == "users" ? "show active" : "")" id="tab-users" role="tabpanel">
             <div class="admin-panel">
                 <h4>Felhasználók</h4>
+
+                @* Search form *@
+                <form method="get" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+                    <input type="hidden" name="SelectedTab" value="users" />
+                    <input name="UserSearch" value="@(Model.UserSearch ?? "")" placeholder="Keresés felhasználónév vagy email..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-family:inherit;" />
+                    <button class="admin-btn admin-btn-primary" type="submit">🔎 Keresés</button>
+                    <a class="admin-btn admin-btn-secondary" href="@Url.Page("/Admin/Index", new { SelectedTab = "users" })">✖ Töröl</a>
+                </form>
+
                 @if (Model.Users?.Any() != true)
                 {
                     <div class="admin-empty">
@@ -624,6 +644,7 @@
                                             {
                                                 <form method="post" asp-page-handler="DeleteUser">
                                                     <input type="hidden" name="id" value="@u.Id" />
+                                                    <input type="hidden" name="UserSearch" value="@(Model.UserSearch ?? "")" />
                                                     <button class="admin-btn admin-btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a felhasználót?');">🗑 Töröl</button>
                                                 </form>
                                             }
@@ -640,6 +661,7 @@
                                                     <form method="post" asp-page-handler="SetUserRole">
                                                         <input type="hidden" name="id" value="@u.Id" />
                                                         <input type="hidden" name="role" value="User" />
+                                                        <input type="hidden" name="UserSearch" value="@(Model.UserSearch ?? "")" />
                                                         <button class="admin-btn admin-btn-secondary" type="submit" onclick="return confirm('Felhasználóként szeretnéd beállítani?');">👤 Felhasználó</button>
                                                     </form>
                                                 }
@@ -648,6 +670,7 @@
                                                     <form method="post" asp-page-handler="SetUserRole">
                                                         <input type="hidden" name="id" value="@u.Id" />
                                                         <input type="hidden" name="role" value="Admin" />
+                                                        <input type="hidden" name="UserSearch" value="@(Model.UserSearch ?? "")" />
                                                         <button class="admin-btn admin-btn-warn" type="submit" onclick="return confirm('Admin szerepet szeretnél adni?');">🛡 Admin</button>
                                                     </form>
                                                 }
@@ -666,6 +689,15 @@
         <div class="tab-pane fade @(Model.SelectedTab == "reports" ? "show active" : "")" id="tab-reports" role="tabpanel">
             <div class="admin-panel">
                 <h4>Reportolt hirdetések</h4>
+
+                @* Report search *@
+                <form method="get" style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+                    <input type="hidden" name="SelectedTab" value="reports" />
+                    <input name="ReportSearch" value="@(Model.ReportSearch ?? "")" placeholder="Keresés leírásra, jelentőre (név/email) vagy hirdetés azonosítóra..." style="flex:1;padding:8px 12px;border-radius:8px;border:1px solid #e5e7eb;font-family:inherit;" />
+                    <button class="admin-btn admin-btn-primary" type="submit">🔎 Keresés</button>
+                    <a class="admin-btn admin-btn-secondary" href="@Url.Page("/Admin/Index", new { SelectedTab = "reports" })">✖ Töröl</a>
+                </form>
+
                 @if (Model.Reports?.Any() != true)
                 {
                     <div class="admin-empty">
@@ -695,13 +727,14 @@
                                         <div class="admin-actions">
                                             <a asp-page="/Listings/Details"
                                                asp-route-azon="@r.ListingId"
-                                               asp-route-returnUrl="@(Url.Page("/Admin/Index", new { SelectedTab = "reports" }))"
+                                               asp-route-returnUrl="@(Url.Page("/Admin/Index", new { SelectedTab = "reports", ReportSearch = Model.ReportSearch }))"
                                                class="admin-btn admin-btn-view">
                                                 👁 Megnyit
                                             </a>
 
                                             <form method="post" asp-page-handler="DeleteReport" class="d-inline">
                                                 <input type="hidden" name="id" value="@r.ReportId" />
+                                                <input type="hidden" name="ReportSearch" value="@(Model.ReportSearch ?? "")" />
                                                 <button class="admin-btn admin-btn-danger" type="submit" onclick="return confirm('Törölni szeretnéd a reportot?');">🗑 Report törlése</button>
                                             </form>
 
@@ -709,7 +742,8 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="listingId" value="@r.ListingId" />
                                                 <input type="hidden" name="reportId" value="@r.ReportId" />
-                                                <button class="admin-btn admin-btn-danger" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;" type="submit">⚠ Mindkettő törlése</button>
+                                                <input type="hidden" name="ReportSearch" value="@(Model.ReportSearch ?? "")" />
+                                                <button class="admin-btn admin-btn-danger" style="background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;border:none;" type="submit">⚠ Hirdetés törlése</button>
                                             </form>
                                         </div>
                                     </td>

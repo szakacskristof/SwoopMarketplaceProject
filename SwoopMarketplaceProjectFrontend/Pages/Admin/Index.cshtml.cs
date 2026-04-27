@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,6 +33,15 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
         [BindProperty(SupportsGet = true)]
         public string SelectedTab { get; set; } = "listings";
 
+        [BindProperty(SupportsGet = true)]
+        public string? UserSearch { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? ListingSearch { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public string? ReportSearch { get; set; }
+
         public List<ListingWithOwnerDto>? Listings { get; set; }
         public List<UserDto>? Users { get; set; }
         public List<ReportDto>? Reports { get; set; }
@@ -44,6 +53,18 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             Users = await _userApi.GetAllAsync();
             Reports = await _reportApi.GetAllAsync();
 
+            // Apply user search filter (case-insensitive) when provided
+            if (!string.IsNullOrWhiteSpace(UserSearch) && Users != null)
+            {
+                var q = UserSearch.Trim();
+                Users = Users
+                    .Where(u =>
+                        (!string.IsNullOrEmpty(u.Username) && u.Username.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(u.Email) && u.Email.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0))
+                    .ToList();
+            }
+
+            // Enrich reports with reporter info first so filtering can use reporter fields
             if (Reports?.Any() == true)
             {
                 foreach (var r in Reports)
@@ -62,6 +83,32 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
                     }
                 }
             }
+
+            // Apply listing search (search title, owner email, description, category)
+            if (!string.IsNullOrWhiteSpace(ListingSearch) && Listings != null)
+            {
+                var q = ListingSearch.Trim();
+                Listings = Listings
+                    .Where(l =>
+                        (!string.IsNullOrEmpty(l.Listing?.Title) && l.Listing.Title.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(l.OwnerEmail) && l.OwnerEmail.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(l.Listing?.Description) && l.Listing.Description.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(l.Listing?.CategoryName) && l.Listing.CategoryName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0))
+                    .ToList();
+            }
+
+            // Apply report search (search description, reporter username or email, listing id)
+            if (!string.IsNullOrWhiteSpace(ReportSearch) && Reports != null)
+            {
+                var q = ReportSearch.Trim();
+                Reports = Reports
+                    .Where(r =>
+                        (!string.IsNullOrEmpty(r.Description) && r.Description.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(r.ReporterUsername) && r.ReporterUsername.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (!string.IsNullOrEmpty(r.ReporterEmail) && r.ReporterEmail.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                        (long.TryParse(q, out var lid) && r.ListingId == lid))
+                    .ToList();
+            }
         }
 
         // OnPostDeleteListingAsync: admin action to delete a listing.
@@ -70,13 +117,13 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             try
             {
                 await _listingApi.DeleteAsync(azon);
-                TempData["Message"] = "Hirdetés törölve.";
+                TempData["Message"] = "Hirdetï¿½s tï¿½rï¿½lve.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
             }
-            return RedirectToPage(new { SelectedTab = "listings" });
+            return RedirectToPage(new { SelectedTab = "listings", ListingSearch });
         }
 
         // OnPostDeleteUserAsync: admin action to delete a user with role protection checks.
@@ -88,8 +135,8 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
 
                 if (targetUser == null)
                 {
-                    TempData["Error"] = "A felhasználó nem található.";
-                    return RedirectToPage(new { SelectedTab = "users" });
+                    TempData["Error"] = "A felhasznï¿½lï¿½ nem talï¿½lhatï¿½.";
+                    return RedirectToPage(new { SelectedTab = "users", UserSearch });
                 }
 
                 var targetRoles = targetUser.Roles ?? new List<string>();
@@ -105,19 +152,19 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
 
                 if (currentIsAdminOnly && targetIsProtected)
                 {
-                    TempData["Error"] = "Admin nem törölhet Admin, Tulaj vagy Owner szerepkörû felhasználót.";
-                    return RedirectToPage(new { SelectedTab = "users" });
+                    TempData["Error"] = "Admin nem tï¿½rï¿½lhet Admin, Tulaj vagy Owner szerepkï¿½rï¿½ felhasznï¿½lï¿½t.";
+                    return RedirectToPage(new { SelectedTab = "users", UserSearch });
                 }
 
                 await _userApi.DeleteAsync(id);
-                TempData["Message"] = "Felhasználó törölve.";
+                TempData["Message"] = "Felhasznï¿½lï¿½ tï¿½rï¿½lve.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToPage(new { SelectedTab = "users" });
+            return RedirectToPage(new { SelectedTab = "users", UserSearch });
         }
 
         // OnPostDeleteReportAsync: delete a report entry.
@@ -126,13 +173,13 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             try
             {
                 await _reportApi.DeleteAsync(id);
-                TempData["Message"] = "Report törölve.";
+                TempData["Message"] = "Report tï¿½rï¿½lve.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
             }
-            return RedirectToPage(new { SelectedTab = "reports" });
+            return RedirectToPage(new { SelectedTab = "reports", ReportSearch });
         }
 
         // OnPostDeleteListingAndReportAsync: delete both listing and its associated report.
@@ -142,14 +189,14 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             {
                 await _listingApi.DeleteAsync(listingId);
                 await _reportApi.DeleteByListingAsync(listingId);
-                TempData["Message"] = "Hirdetés és report törölve.";
+                TempData["Message"] = "Hirdetï¿½s ï¿½s report tï¿½rï¿½lve.";
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
             }
 
-            return RedirectToPage(new { SelectedTab = "reports" });
+            return RedirectToPage(new { SelectedTab = "reports", ReportSearch });
         }
 
         // OnPostSetUserRoleAsync: set a user's role via admin API (with safeguards).
@@ -159,19 +206,19 @@ namespace SwoopMarketplaceProjectFrontend.Pages.Admin
             {
                 if (string.Equals(role, "Tulaj", StringComparison.OrdinalIgnoreCase))
                 {
-                    TempData["Error"] = "A 'Tulaj' szerep az admin oldalon nem állítható.";
+                    TempData["Error"] = "A 'Tulaj' szerep az admin oldalon nem ï¿½llï¿½thatï¿½.";
                 }
                 else
                 {
                     await _adminApi.SetUserRoleAsync(id, role);
-                    TempData["Message"] = "Szerep frissítve.";
+                    TempData["Message"] = "Szerep frissï¿½tve.";
                 }
             }
             catch (Exception ex)
             {
                 TempData["Error"] = ex.Message;
             }
-            return RedirectToPage(new { SelectedTab = "users" });
+            return RedirectToPage(new { SelectedTab = "users", UserSearch });
         }
     }
 }
