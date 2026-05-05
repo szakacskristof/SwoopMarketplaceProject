@@ -1,6 +1,6 @@
 # 🛍️ Swoop Marketplace
 
-**Swoop** is a full-stack second-hand marketplace web application where users can buy and sell used items. Sellers can post listings with images, buyers can browse and filter by category, save favourites, and contact sellers via real-time chat — all within a clean, role-based platform.
+**Swoop** is a full-stack second-hand marketplace web application where users can buy and sell used items. Sellers can post listings with images, buyers can browse and filter by category, save favourites, and contact sellers via real-time chat — all within a clean, role-based platform. The program is for a school project. Creators: Bári Máté,Márkus Barnabás,Szakács Kristóf
 
 ---
 
